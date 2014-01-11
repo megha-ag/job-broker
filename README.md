@@ -144,6 +144,87 @@ Structure of a broker event notification
 }
 ```
 
+Structure of a message
+----------------------
+```javascript
+{
+	id: String
+	jobType: String
+	payload: Object
+}
+```
+
+Sample code that listens for messages
+-------------------------------------
+```javascript
+/* jslint node: true */
+"use strict";
+var path = require("path");
+var brokerModule = require("job-broker");
+
+var numProcessed = 0;
+
+var broker = new brokerModule.JobBroker();
+
+broker.load("broker.json", function(result, brokerObj) {
+	if(result.errorCode) {
+		console.log("Oops:" + result.errorMessage);
+	}
+	else {
+		brokerObj.on("work-error", function(err, message) {
+			numProcessed++;
+			console.log("Error while processing message[" + numProcessed + "]:");
+			console.log(message);
+			console.log(err);
+		});
+		
+		brokerObj.on("work-completed", function(err, message) {
+			numProcessed++;
+			console.log("Work completed for message[" + numProcessed + "]:");
+			//console.log(message);
+			//console.log(err);
+		});
+		
+		brokerObj.on("queue-poison", function(err, message) {
+			numProcessed++;
+			console.log("Poison message will be deleted - message[" + numProcessed + "]:");
+		});
+		
+		brokerObj.on("queue-error", function(err, message) {
+			console.log("----------------- Queue Error -----------------");
+			console.log(err);
+			console.log("--------------- End Queue Error ---------------");
+		});
+		
+		brokerObj.on("queue-deleted", function(err, message) {
+			//console.log("Message deleted - message[" + message + "]:");
+		});
+		
+		//Change this to the number of queues in the config files
+		var numQueues = 1;
+		
+		//The number of queues that have connected to their servers
+		var queuesInitialized = 0;
+		
+		brokerObj.on("queue-ready", function() {
+			queuesInitialized++;
+			if(queuesInitialized === numQueues) {
+				//Start listening for messages
+				brokerObj.start();
+			}
+		});
+		
+		//Connect to queue creating the queue if necessary
+		brokerObj.connect();
+	}
+});
+
+process.on('uncaughtException', function (err) {
+  console.log('Caught exception: ' + err);
+});
+```
+
+
 Performance
 -----------
 This code has been tested using Elasticache and SQS.
