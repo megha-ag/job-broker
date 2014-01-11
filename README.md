@@ -102,11 +102,11 @@ Flow of message processing
 --------------------------
 1. Broker registers to be notified when the queue has messages to process.
 2. When broker gets notified of a new message, then 
-- Broker sets the visibility timeout of the message as specified in the config
-- During invisibility timeout, the same message will not be notified to any queue listener
-- The broker passes the message to a workers
-- Once the workers callback that the message is processed, broker deletes the message
-- If workers fail, the message will be notified to the broker again after the invisibility timeout
+	Broker sets the visibility timeout of the message as specified in the config
+	During invisibility timeout, the same message will not be notified to any queue listener
+	The broker passes the message to a workers
+	Once the workers callback that the message is processed, broker deletes the message
+	If workers fail, the message will be notified to the broker again after the invisibility timeout
 
 Performance
 -----------
