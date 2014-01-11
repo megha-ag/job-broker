@@ -122,6 +122,27 @@ A script using the broker can register for certain events. The following is a li
 * queue-poison - This event is raised when a message that has been dequeued too many times is automatically deleted
 * queue-pushmany-completed - An array of messages can be pushed to a queue through the broker (only if it contains messages of the same jobType, and that jobType is registered to only one queue). Also, once a pushMany call starts, another pushMany call cannot be made to the same queue while the call is in progress. This event signals that the pushMany call has completed and the script that is using the broker can now push another batch of messages
 
+Structure of a broker event notification
+----------------------------------------
+```javascript
+{
+	"workerNumber":1,
+	"workerModule":"console-settings",
+	"queueModule":"redis",
+	"queueName":"testq",
+	"message":{
+		"id":"2323ab322ced",
+		"jobType":"sendsms",
+		"payload":{ "somekey":"someval" }
+	}
+	"error": {
+		"errorCode":2002,
+		"errorMessage":"There was an error queuing the message"
+		"queueError":{ Object with a queue specific error if any }
+		"workerError":{ Object with a worker specific error if any }
+	}
+}
+```
 
 Performance
 -----------
