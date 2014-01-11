@@ -1,0 +1,16 @@
+{
+	"workers": [
+		{
+			"job-type":"joyous",
+			"worker": {
+			},
+			"queue" : {
+				"queue-module":"redis",
+				"queue-settings": {
+					"server":"someurl",
+					"name":"somename"
+				}
+			}
+		}
+	]
+}

@@ -1,0 +1,38 @@
+/* jslint node: true */
+"use strict";
+
+exports.errors = {
+		none: { errorCode: 0, errorMessage:undefined },
+		brokerConfig_CouldNotLoadJson: { errorCode: 1000, errorMessage:"Could not load JSON configuration file!" },
+		brokerConfig_ConfigFileNotFound: { errorCode: 1003, errorMessage:"The config file [_] could not be loaded" },
+		brokerConfig_WorkersNotSpecified: { errorCode: 1004, errorMessage:"The workers node could not be loaded" },
+		brokerConfig_NoWorkers: { errorCode: 1005, errorMessage:"The workers node contains no valid workers" },
+		brokerConfig_JobTypeMissing: { errorCode: 1006, errorMessage:"Worker [_]: job-type must be set" },
+		brokerConfig_WorkerNodeMissing: { errorCode: 1007, errorMessage:"Worker [_]: worker must be set" },
+		brokerConfig_WorkerModuleMissing: { errorCode: 1008, errorMessage:"Worker [_]: worker-module must be set" },
+		brokerConfig_WorkerModuleCouldNotBeLoaded: { errorCode: 1009, errorMessage:"Worker Module[_]: worker module could not be loaded" },
+		brokerConfig_WorkerModuleCouldNotBeInitialized: { errorCode: 1010, errorMessage:"Initialization Error in Worker Module[_1_]: Worker module error - _2_" },
+		brokerConfig_QueueNodeMissing: { errorCode: 1011, errorMessage:"Worker [_]: queue must be set" },
+		brokerConfig_QueueModuleMissing: { errorCode: 1012, errorMessage:"Worker [_]: queue-module must be set" },
+		brokerConfig_QueueNameMissing: { errorCode: 1013, errorMessage:"Worker [_]: queue-name must be set" },
+		brokerConfig_QueueModuleCouldNotBeLoaded: { errorCode: 1014, errorMessage:"Worker Module[_]: queue module could not be loaded" },
+		brokerConfig_QueueModuleCouldNotBeInitialized: { errorCode: 1015, errorMessage:"Initialization Error in Worker Module[_1_]: Queue module error - _2_" },
+		brokerConfig_UnknownError: { errorCode: 1999, errorMessage:"An unknown error occurred:[_]" },
+		queueInit_ErrorLoadingQueuesList: { errorCode: 2000, errorMessage:"Could not load list of queues - _" },
+		queueInit_ErrorCreatingQueue: { errorCode: 2001, errorMessage:"Could not create queue[_1_] - _2_" },
+		queueInit_ErrorCreatingQueueUnexpectedResponse: { errorCode: 2002, errorMessage:"Could not create queue[_1_] - Response: _2_" },
+		queueReceive_ErrorReceivingMessage: { errorCode: 2003, errorMessage:"Could not receive message queue[_1_] - Error: _2_" },
+		queuePush_FailedToInitialize: { errorCode: 2004, errorMessage:"Could not initialize queue" },
+		queuePush_PushError: { errorCode: 2005, errorMessage:"Unexpected error: _" },
+		queueInvisibilityTimeout_FailedToInitialize: { errorCode: 2006, errorMessage:"Could not initialize queue" },
+		queueInvisibilityTimeout_SetError: { errorCode: 2007, errorMessage:"Unexpected error: _" },
+		queueDelete_FailedToInitialize: { errorCode: 2008, errorMessage:"Could not initialize queue" },
+		queueDelete_DeleteError: { errorCode: 2009, errorMessage:"Unexpected error: _" },
+		queuePushMany_TooManyMessages: { errorCode: 2010, errorMessage:"Too many messages" },
+		queuePushMany_IncompatibleJobTypes: { errorCode: 2011, errorMessage:"pushMany() can only be used to push messages of the same jobType" },
+		queuePushMany_TooManyQueues: { errorCode: 2012, errorMessage:"pushMany() can only be used for a jobType registered for a single queue" },
+		queuePushMany_AlreadyPushing: { errorCode: 2013, errorMessage:"pushMany() already in progress for jobType[_]. Please wait for queue-pushmany-completed event before calling pushMany() again." },
+		workerHttp_UnexpectedStatusCode: { errorCode: 3000, errorMessage:"Unexpected status code _. Expected 200" },
+		workerHttp_UnexpectedError: { errorCode: 3001, errorMessage:"Unexpected error occurred while making http request - " },
+		workerWork_UnexpectedError: { errorCode: 3002, errorMessage:"Unexpected error occurred while calling worker.work - " }
+	};

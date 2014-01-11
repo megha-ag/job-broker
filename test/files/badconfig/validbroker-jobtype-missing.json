@@ -1,0 +1,19 @@
+{
+	"workers": [
+		{
+			"worker": {
+				"worker-module":"something",
+				"worker-settings": {
+					"config-file":"routing.json"
+				}
+			},
+			"queue" : {
+				"queue-module":"redis",
+				"queue-settings": {
+					"server":"someurl",
+					"name":"somename"
+				}
+			}
+		}
+	]
+}

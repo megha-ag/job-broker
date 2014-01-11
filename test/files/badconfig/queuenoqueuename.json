@@ -1,0 +1,20 @@
+{
+	"workers": [
+		{
+			"job-type":"sendmsg",
+			"worker": {
+				"worker-module":"console-settings",
+				"worker-settings": {
+					"name":"required"
+				}
+			},
+			"queue" : {
+				"queue-module": "rubbish",
+				"queue-settings": {
+					"server":"someurl",
+					"name":"somename"
+				}
+			}
+		}
+	]
+}

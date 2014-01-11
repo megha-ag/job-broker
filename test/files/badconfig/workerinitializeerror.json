@@ -1,0 +1,17 @@
+{
+	"workers": [
+		{
+			"job-type":"sendmsg",
+			"worker": {
+				"worker-module":"console-settings"
+			},
+			"queue" : {
+				"queue-module":"redis",
+				"queue-settings": {
+					"server":"someurl",
+					"name":"somename"
+				}
+			}
+		}
+	]
+}

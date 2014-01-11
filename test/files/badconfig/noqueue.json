@@ -1,0 +1,13 @@
+{
+	"workers": [
+		{
+			"job-type":"sendmsg",
+			"worker": {
+				"worker-module":"console-settings",
+				"worker-settings": {
+					"name":"required"
+				}
+			}
+		}
+	]
+}

@@ -1,0 +1,25 @@
+{
+	"workers": [
+		{
+			"job-type":"sendmsg",
+			"worker": {
+				"worker-module":"console-settings",
+				"worker-settings": {
+					"name":"required"
+				}
+			},
+			"queue" : {
+				"queue-module":"redisqueue",
+				"queue-name":"pushmany",
+				"queue-settings": {
+					"host":"127.0.0.1",
+					"port":"6379",
+					"ns":"rsmq",
+					"polling-interval":3000,
+					"invisibility-timeout":3600,
+					"max-dequeue-count":3
+				}
+			}
+		}
+	]
+}
