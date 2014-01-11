@@ -110,6 +110,19 @@ Flow of message processing
   * Once the workers callback that the message is processed, broker deletes the message
   * If workers fail, the message will be notified to the broker again after the invisibility timeout
 
+Broker Events
+-------------
+A script using the broker can register for certain events. The following is a list of events raised by the broker:
+* queue-ready - This event is raised when the queue is ready to start processing messages
+* queue-error - This event is raised when there is an error as a result of a queue operation
+* queue-success - This event is raised when a message was successfully queued. Please note that if a job type has multiple queues registered, then this event will be raised multiple times (one time per queue)
+* work-completed - This event is raised when a consumer signals that it is done processing the message
+* work-error - This event is raised when a consumer signals that it failed in processing the message
+* queue-deleted - This event is raised after a message is deleted
+* queue-poison - This event is raised when a message that has been dequeued too many times is automatically deleted
+* queue-pushmany-completed - An array of messages can be pushed to a queue through the broker (only if it contains messages of the same jobType, and that jobType is registered to only one queue). Also, once a pushMany call starts, another pushMany call cannot be made to the same queue while the call is in progress. This event signals that the pushMany call has completed and the script that is using the broker can now push another batch of messages
+
+
 Performance
 -----------
 This code has been tested using Elasticache and SQS.
