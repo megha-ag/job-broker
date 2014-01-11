@@ -91,11 +91,13 @@ Configuration Constraints
 - One job type can be pushed to multiple queues (SQS or Redis), just add same jobType in the array more than once.
   * JobType1, Worker-Any, Q1
   * JobType1, Worker-Any, Q2
+
 In the example above, message with job-type JobType1 will be pushed to both Q1 and Q2. Q1 and Q2 can be either Redis or SQS queues.
 - A particular queue (with specified type Redis/SQS and name queue-name) can only be associated with one jobType. The reason why this is disallowed is because if W1 already processed the message from Q1, W2 would never get the message. Similarly if W2 processed the message, W1 would never get the message. Since Node is not multi-threaded, such a configuration does not make sense.
 i.e.
   * JobType-Any, Worker-Any, Q1
   * JobType-Any, Worker-Any, Q1
+
 is not allowed
 
 Flow of message processing
