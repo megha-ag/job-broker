@@ -21,6 +21,72 @@ Customizable Workers
 --------------------
 It is simple to write your own workers. Workers are nodejs modules and can be configured via a file. A sample worker can be found in src/workers/console-settings.js
 
+How to configure
+----------------
+You need to create a configuration file. The following snippet shows a sample
+```javascript
+{
+	"workers": [
+		{
+			"job-type":"sendtweet",
+			"worker": {
+				"worker-module":"yourtweetworker.js",
+				"worker-settings": {
+					"key1":"value1",
+					"key2":100
+				}
+			},
+			"queue" : {
+				"queue-module":"redisqueue",
+				"queue-name":"yourqueue",
+				"queue-settings": {
+					"host":"127.0.0.1",
+					"port":"6379",
+					"ns":"rsmq",
+					"polling-interval":3000,
+					"invisibility-timeout":3600,
+					"max-dequeue-count":3
+				}
+			}
+		},
+		{
+			"job-type":"sendemail",
+			"worker": {
+				"worker-module":"youremailworker.js",
+				"worker-settings": {
+					"key1":"value1",
+					"key2":100
+				}
+			},
+			"queue" : {
+				"queue-module":"sqsqueue",
+				"queue-name":"yoursqsqueue",
+				"queue-settings": {
+					"polling-interval":20,
+					"invisibility-timeout":3600,
+					"aws-config-file":"aws.json",
+					"max-dequeue-count":3,
+					"delete-frequency-seconds":5
+				}
+			}
+		}
+	]
+}
+```
+
+The sample above uses an SQS queue which defines an aws-config-file. This file contains your AWS settings. A sample file (aws.json in the example above) is shown below:
+
+```javascript
+{ 
+	"accessKeyId": "YOUR-ACCESS-KEY-ID", 
+	"secretAccessKey": "YOUR-SECRET-ACCESS-KEY-ID", 
+	"region": "us-west-2" 
+}
+```
+
+In the configuration shown, messages with type sendtweet will be pushed to the defined Redis queue. Messages of type sendemail will be pushed to the SQS queue.
+
+
 Performance
 -----------
 This code has been tested using Elasticache and SQS.
