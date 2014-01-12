@@ -30,7 +30,15 @@ var JobBroker = function() {
 				errorCodes = require(path.join(__dirname, "/errors.js")).errors;
 
 				//Load the configuration
-				var configPath = path.join(__dirname, "../../../" + configFile);
+				var configPath;
+				
+				//Check if absolute or relative path
+				if(configFile.charAt(0) === '/') {
+					configPath = configFile;
+				}
+				else {
+					configPath = path.join(__dirname, "../../../" + configFile);
+				}
 			
 				//Load the checker module
 				var checker = require(path.join(__dirname, "/configerrorchecker.js")).checker(callBack, configPath);

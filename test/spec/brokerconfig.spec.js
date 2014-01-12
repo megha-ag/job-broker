@@ -2,6 +2,7 @@
 "use strict";
 
 var path = require('path');
+var fs = require('fs');
 
 var modulePath = path.join(__dirname, "../../src/broker.js");
 var brokerModule = require(modulePath);
@@ -12,7 +13,7 @@ function getTestFilePath(filename) {
 	if(filename.charAt(0) === '/') {
 		filename = filename.substring(1);
 	}
-	return "node_modules/job-broker/test/files/badconfig/" + filename;
+	return path.join(__dirname, "../files/badconfig/" + filename);
 }
 
 function resultCheck() {

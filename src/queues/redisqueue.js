@@ -160,6 +160,22 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 	}
 	
+	function myPush(message, when, callback) {
+		var messageStorage = {qname:queue.queueName, message:JSON.stringify(message), delay:when};
+		rsmq.sendMessage(messageStorage, function(err, resp) {
+			messageStorage = null;
+			//The default callback is called if a specific callback is not
+			//not specified
+			if(!callback) {
+				pushCallback(message, err, resp);
+			}	
+			else {
+				//A specific callback. This is used by pushMany
+				callback(message, err, resp);
+			}
+		});
+	}
+	
 	//Push a message onto the queue
 	queue.push = function(message, callback) {
 		//If initialization failed
@@ -169,19 +185,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 		else {
 			//It is initialized, so we can continue with sending the message
-			var messageStorage = {qname:queue.queueName, message:JSON.stringify(message)};
-			rsmq.sendMessage(messageStorage, function(err, resp) {
-				messageStorage = null;
-				//The default callback is called if a specific callback is not
-				//not specified
-				if(!callback) {
-					pushCallback(message, err, resp);
-				}	
-				else {
-					//A specific callback. This is used by pushMany
-					callback(message, err, resp);
-				}
-			});
+			myPush(message, 0, callback);
 		}
 	};
 	
@@ -261,7 +265,15 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	
 	//push a message to the queue with a delay
 	queue.schedule = function(message, when) {
-		
+		//If initialization failed
+		if(!queue.queueInitialized) {
+			//callback with an error
+			setTimeout(function() { queue.pushInitializationFailure(message); }, 0);
+		}
+		else {
+			//It is initialized, so we can continue with sending the message
+			myPush(message, when);
+		}
 	};
 	
 	//Function called after message is deleted from the queue
