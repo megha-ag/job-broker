@@ -112,6 +112,30 @@ Flow of message processing
   * Once the workers callback that the message is processed, broker deletes the message
   * If workers fail, the message will be notified to the broker again after the invisibility timeout
 
+Structure of a message
+----------------------
+```javascript
+{
+	id: String
+	jobType: String
+	payload: Object
+}
+```
+
+The id of the message is not specified when it is pushed to the queue. After the object is successfully pushed to the queue, the message returned in the queue-success event will have the id populated.
+
+The id will also be populated when messages are read from the queue and processed by workers.
+
+Broker Interface
+----------------
+The broker provides the following functions:
+1. push(message) - This pushes the message to one or more queues depending on jobType specified in the message.
+2. pushMany(messages) - This pushes an array of messages to a single queue. All the messages in the array must have one jobType and that jobType must correspond to a single queue. This method can only be invoked once. The invoker must listed for the queue-pushmany-completed event before pushing the next set of messages.
+3. schedule(message, when) - This pushes a message to one or more queues, but messages will only be processed after the delay (in seconds) specified by when. The delay is counted from the present time.
+4. connect() - This is the first function that should be called by a script using the broker. This call will result in a queue-ready event once a particular queue is ready. The script using the broker can count when all queues are ready or can start once a particular queue it is interested in is ready.
+5. start() - After all queues are ready, a script using the broker to start the message processing cycle.
+6. stop() - This stops the message processing cycle. 
+
 Broker Events
 -------------
 A script using the broker can register for certain events. The following is a list of events raised by the broker:
@@ -123,6 +147,7 @@ A script using the broker can register for certain events. The following is a li
 * queue-deleted - This event is raised after a message is deleted
 * queue-poison - This event is raised when a message that has been dequeued too many times is automatically deleted
 * queue-pushmany-completed - An array of messages can be pushed to a queue through the broker (only if it contains messages of the same jobType, and that jobType is registered to only one queue). Also, once a pushMany call starts, another pushMany call cannot be made to the same queue while the call is in progress. This event signals that the pushMany call has completed and the script that is using the broker can now push another batch of messages
+
 
 Structure of a broker event notification
 ----------------------------------------
@@ -145,20 +170,6 @@ Structure of a broker event notification
 	}
 }
 ```
-
-Structure of a message
-----------------------
-```javascript
-{
-	id: String
-	jobType: String
-	payload: Object
-}
-```
-
-The id of the message is not specified when it is pushed to the queue. After the object is successfully pushed to the queue, the message returned in the queue-success event will have the id populated.
-
-The id will also be populated when messages are read from the queue and processed by workers.
 
 Sample code that listens for messages
 -------------------------------------
