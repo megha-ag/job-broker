@@ -415,6 +415,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				queue.isStarted = true;
 				//Start the polling
 				poller();
+				//Call the started callback
+				queue.startedFuntion();
 			}
 			//Otherwise nothing to do, error is raised already
 		});
@@ -432,6 +434,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				clearTimeout(timerHandle);
 				//Unset the handle
 				timerHandle = undefined;
+				//Call the started callback
+				queue.stoppedFunction();
 			}
 		}
 	};

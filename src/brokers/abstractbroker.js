@@ -25,13 +25,21 @@ function AbstractBroker(name) {
 	//Event map to map a jobType to a queue
 	var eventMap = {};
 	
-	//Utility function to wmit an error
+	//Number of queues that are started
+	var queuesStarted = 0;
+	
+	//Total number of queues
+	var queuesNumber = 0;
+	
+	//Total number of queues in ready state
+	var queuesReady = 0;
+	
+	//Utility function to return the error meta info
 	function getError(myWorker, myQueue, err) {
 		var errorInfo = {};
 		errorInfo.workerNumber = myWorker.workerNumber;
-		errorInfo.workerModule = myWorker.moduleName;
-		errorInfo.queueModule = myQueue.moduleName;
-		errorInfo.queueName = myQueue.queueName;
+		errorInfo.worker = myWorker;
+		errorInfo.queue = myQueue;
 		errorInfo.error = err;
 		return errorInfo;
 	}
@@ -185,8 +193,51 @@ function AbstractBroker(name) {
 			var myWorker = workerModule;
 			var myQueue = queueModule;
 			var myBroker = broker;
-			myBroker.emit("queue-ready");
+			
+			//One more queue is ready
+			queuesReady++;
+			
+			myBroker.emit("queue-ready", workerModule, queueModule);
+			
+			if(queuesReady === queuesNumber) {
+				//All queues are initialized
+				myBroker.emit("broker-initialized");
+			}
 		};
+		
+		//Called when a queue is listening for new messages
+		queueModule.startedFunction = function() {
+			var myWorker = workerModule;
+			var myQueue = queueModule;
+			var myBroker = broker;
+			
+			queuesStarted++;
+			
+			myBroker.emit("queue-started", workerModule, queueModule);
+			
+			if(queuesStarted === queuesNumber) {
+				//All queues are initialized
+				myBroker.emit("broker-started");
+			}
+		};
+		
+		//Called when a queue has stopped listening for new messages
+		queueModule.stoppedFunction = function() {
+			var myWorker = workerModule;
+			var myQueue = queueModule;
+			var myBroker = broker;
+			
+			queuesStarted--;
+			
+			myBroker.emit("queue-stopped", workerModule, queueModule);
+			
+			if(queuesStarted === 0) {
+				myBroker.emit("broker-stopped");
+			}
+		};
+		
+		//Record the number of queues
+		queuesNumber++;
 	};	
 	
 	//Pushes the message to all queues registered
@@ -267,21 +318,6 @@ function AbstractBroker(name) {
 				for(var i=0; i<queues.length; i++) {
 					var queueModule = queues[i];
 					queueModule.connect();
-				}
-			}
-		}
-	};
-	
-	//Emits the queue-start message which all queues
-	//listen for and thus, all queues start listening
-	//for messages
-	this.start = function () {
-		for(var propt in eventMap) {
-			var queues = eventMap[propt];
-			if(queues) {
-				for(var i=0; i<queues.length; i++) {
-					var queueModule = queues[i];
-					queueModule.start();
 				}
 			}
 		}

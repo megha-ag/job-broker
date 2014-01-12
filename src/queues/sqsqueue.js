@@ -650,6 +650,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				queue.isStarted = true;
 				//Start the polling
 				receiveService.start();
+				//Notify that we have started
+				queue.startedFunction();
 			}
 		});
 	};
@@ -660,6 +662,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		if(queue.isStarted) {
 			//Mark that we are not anymore
 			queue.isStarted = false;
+			//Call the stopped function
+			queue.stoppedFunction();
 		}
 	};
 	

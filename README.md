@@ -134,13 +134,14 @@ The broker provides the following functions:
 2. `pushMany(messages)` - This pushes an array of messages to a single queue. All the messages in the array must have one `jobType` and that `jobType` must correspond to a single queue. This method can only be invoked once. The invoker must listen for the `queue-pushmany-completed` event before pushing the next set of messages.
 3. `schedule(message, when)` - This pushes a message to one or more queues, but messages will only be processed after the delay (in seconds) specified by `when`. The delay is counted from the present time.
 4. `connect()` - This is the first function that should be called by a script using the broker. This call will result in a `queue-ready` event once a particular queue is ready. The script using the broker can count when all queues are ready or can do something once a particular queue it is interested in is ready.
-5. `start()` - After all queues are ready, a script using the broker to start the message processing cycle. If this is called before ALL queues are ready, the queues that are not ready will generate a `queue-error` event.
-6. `stop()` - This stops the message processing cycle. 
+5. `stop()` - This stops the message processing cycle for all queues.
 
 Broker Events
 -------------
 A script using the broker can register for certain events. The following is a list of events raised by the broker:
-* `queue-ready` - This event is raised when the queue is ready to start processing messages
+* `queue-ready` - This event is raised when the queue is ready to start processing messages. The worker module and queue module are passed in this event (in that order), thus the script using the broker can call `queue.start()` to start listening for messages.
+* `queue-started` - This event is raised when the queue has started listening for messages. The `worker` and `queue` are passed as arguments (in that order).
+* `queue-stopped` - This event is raised when a queue has stopped listening for messages. The `worker` and the `queue` are passed as arguments (in that order).
 * `queue-error` - This event is raised when there is an error as a result of a queue operation
 * `queue-success` - This event is raised when a message was successfully queued. Please note that if a job type has multiple queues registered, then this event will be raised multiple times (one time per queue)
 * `work-completed` - This event is raised when a consumer signals that it is done processing the message
@@ -148,6 +149,9 @@ A script using the broker can register for certain events. The following is a li
 * `queue-deleted` - This event is raised after a message is deleted
 * `queue-poison` - This event is raised when a message that has been dequeued too many times is automatically deleted
 * `queue-pushmany-completed` - This event signals that the `pushMany` call has completed and the script that is using the broker can now push another batch of messages. A report on the messages that were pushed to the queue is passed through this event. The structure of the report is documented next.
+* `broker-initialized` - After a call to `broker.connect()`. This event is raised when all the queues registered with the broker initialized.
+* `broker-started` - After a call to `broker.start()`. This event is raised when all the queues that are registered with the broker are now listening for messages.
+* `broker-stopped` - After a call to `broker.stop()`. This event is raised when all the queues that were listening for messages are no longer listening for messages.
 
 
 Structure of a broker event notification
@@ -155,9 +159,8 @@ Structure of a broker event notification
 ```javascript
 {
 	"workerNumber":1,
-	"workerModule":"console-settings",
-	"queueModule":"redis",
-	"queueName":"testq",
+	"worker":{ The worker object },
+	"queue":{ The queue object },
 	"message":{
 		"id":"2323ab322ced",
 		"jobType":"sendsms",
@@ -171,6 +174,8 @@ Structure of a broker event notification
 	}
 }
 ```
+
+This does not apply to these events: `queue-ready`, `queue-started`, `queue-stopped`, `broker-initialized`, `broker-started`, and `broker-stopped`
 
 Structure of the report object resulting from a pushMany call
 -------------------------------------------------------------
@@ -251,26 +256,17 @@ broker.load("broker.json", function(result, brokerObj) {
 			//console.log("Message deleted - message[" + message + "]:");
 		});
 		
-		//Change this to the number of queues in the config files
-		var numQueues = 1;
-		
-		//The number of queues that have connected to their servers
-		var queuesInitialized = 0;
-		
-		brokerObj.on("queue-ready", function() {
-			queuesInitialized++;
-			if(queuesInitialized === numQueues) {
-				//Start listening for messages
-				brokerObj.start();
-				//Push a single message. Note: id is not specified
-				//brokerObj.push({ 
-				//	jobType: "sendemail", 
-				//	payload: { 
-				//		some:"fancy",
-				//		obj:"val"
-				//	} 
-				//});
-			}
+		brokerObj.on("queue-ready", function(worker, queue) {
+			//Tell the queue to start listening for messages
+			queue.start();
+			//Sample commented code to push a message
+			//brokerObj.push({ 
+			//	jobType: "sendemail", 
+			//	payload: { 
+			//		some:"fancy",
+			//		obj:"val"
+			//	} 
+			//});
 		});
 		
 		//Connect to queue creating the queue if necessary
@@ -371,19 +367,13 @@ jobBroker.load("broker.json", function(result, brokerObj) {
 			produce();
 		});
 		
-		//Change this to the number of queues in the config files
-		var numQueues = 1;
 		
-		//The number of queues that have connected to their servers
-		var queuesInitialized = 0;
-		
-		broker.on("queue-ready", function() {
-			queuesInitialized++;
-			if(queuesInitialized === numQueues) {
-				produce();
-			}
+		broker.on("broker-initialized", function() {
+			//All queues are ready, let's start producing messages
+			produce();
 		});
 		
+		//Initialize all queues
 		broker.connect();
 	}
 });
