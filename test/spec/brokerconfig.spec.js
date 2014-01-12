@@ -1,4 +1,5 @@
 /* jslint node: true */
+/*global beforeEach, afterEach, describe, expect, it, spyOn, xdescribe, xit, waitsFor */
 "use strict";
 
 var path = require('path');
