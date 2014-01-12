@@ -1,6 +1,6 @@
 job-broker
 ==========
-[![Build Status](https://travis-ci.org/vchatterji/job-broker.png?branch=master)](https://travis-ci.org/vchatterji/job-broker)
+[![Build Status](https://travis-ci.org/vchatterji/job-broker.png?branch=master)](https://travis-ci.org/vchatterji/job-broker) v0.0.5 (master)
 
 A nodejs job broker module that allows [AMQP](http://www.rabbitmq.com/tutorials/amqp-concepts.html) style fanout queuing to Redis or SQS. It also allows you to create workers to process jobs from queues.
 
@@ -139,11 +139,11 @@ The broker provides the following functions:
 Broker Events
 -------------
 A script using the broker can register for certain events. The following is a list of events raised by the broker:
-* `queue-ready` - This event is raised when the queue is ready to start processing messages. The worker module and queue module are passed in this event (in that order), thus the script using the broker can call `queue.start()` to start listening for messages.
+* `queue-ready` - This event is raised when the queue is ready to start processing messages. The `worker` and `queue` are passed in this event (in that order), thus the script using the broker can call `queue.start()` to start listening for messages.
 * `queue-started` - This event is raised when the queue has started listening for messages. The `worker` and `queue` are passed as arguments (in that order).
 * `queue-stopped` - This event is raised when a queue has stopped listening for messages. The `worker` and the `queue` are passed as arguments (in that order).
 * `queue-error` - This event is raised when there is an error as a result of a queue operation
-* `queue-success` - This event is raised when a message was successfully queued. Please note that if a job type has multiple queues registered, then this event will be raised multiple times (one time per queue)
+* `queue-success` - This event is raised when a message was successfully queued. Please note that if a `jobType` has multiple queues registered, then this event will be raised multiple times (one time per queue)
 * `work-completed` - This event is raised when a consumer signals that it is done processing the message
 * `work-error` - This event is raised when a consumer signals that it failed in processing the message
 * `queue-deleted` - This event is raised after a message is deleted
@@ -179,7 +179,7 @@ This does not apply to these events: `queue-ready`, `queue-started`, `queue-stop
 
 Structure of the report object resulting from a pushMany call
 -------------------------------------------------------------
-After a pushMany call finishes, the queue-pushmany-completed event is raised which passes a report object indicating the status of individual messages. The structure of the report object is shown below:
+After a pushMany call finishes, the `queue-pushmany-completed` event is raised which passes a `report` object indicating the status of individual messages. The structure of the `report` object is shown below:
 ```javascript
 {
 	successes:[
