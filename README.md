@@ -429,13 +429,7 @@ Thus, the web app/REST API shall only produce the messages and push them to the 
 
 Unit Tests
 ----------
-The project defines some unit tests (jasmine) that can be executed via grunt (linting, tests related to configuration errors). Since this module is meant to be part of some other project, the tests can be executed after you install it. To execute the tests:
-```
-npm install job-broker
-cd node_modules/job-broker
-npm install
-grunt
-```
+The project defines some unit tests (jasmine) that can be executed via grunt (linting, tests related to configuration errors).
 
 Please help improve this module by adding more unit tests.
 
