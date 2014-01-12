@@ -20,7 +20,7 @@ Comes bundled with ready-made queue modules for Redis (using RSMQ) and SQS (usin
 
 Customizable Workers
 --------------------
-It is simple to write your own workers. Workers are nodejs modules and can be configured via a file. A sample worker can be found in src/workers/console-settings.js
+It is simple to write your own workers. Workers are nodejs modules and can be configured via a file. 
 
 How to configure
 ----------------
@@ -86,6 +86,56 @@ The sample above uses an SQS queue which defines an aws-config-file. This file c
 ```
 
 In the configuration shown, messages with type sendtweet will be pushed to the defined Redis queue. Messages of type sendemail will be pushed to the SQS queue.
+
+A simple worker
+---------------
+The code below shows a simple asynchronous worker that just writes messages to the console.
+
+```javascript
+/* jslint node: true */
+"use strict";
+
+//Load the AbstractWorker definition
+var AbstractWorker = require("job-broker").AbstractWorker;
+
+exports.worker = function() {
+	//Create instance (giving it a friendly name)
+	var worker = new AbstractWorker("simpleworker");
+	
+	//Error codes (you should ideally define them in a module)
+	//and share them across your workers for consistency
+	var errorCode = {
+		none: { errorCode:0, errorMessage:undefined  }
+	};
+	
+	//Initialize
+	worker.init = function(workerSettings) {
+		//the worker-settings object (defined in config)
+		//is passed here and thus
+		//you may check for any required settings
+		//and throw an error message using
+		//worker.throwError("Your error message");
+	};
+	
+	//A worker must call worker.processCallback(err, message);
+	//once it is done with processing a messages
+	function sendCallback(message) {
+		console.log("Worker[simpleworker], QueueModule[" + worker.queue.moduleName + "], QueueName[" + worker.queue.queueName + "] - Message processed:");
+		console.log(JSON.stringify(message));
+		worker.processCallback(errorCode.none, message);
+	}
+	
+	//Process the message asynchronously
+	worker.work = function(message) {	
+		console.log("Worker[simpleworker], QueueModule[" + worker.queue.moduleName + "], QueueName[" + worker.queue.queueName + "] - Work called for message:");
+		console.log(JSON.stringify(message));
+		//You would invoke you asynchronous function here
+		setTimeout(function() { sendCallback(message) }, 0);
+	};
+	
+	return worker;
+};
+```
 
 Configuration Constraints
 -------------------------
