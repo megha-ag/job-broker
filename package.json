@@ -1,7 +1,7 @@
 {
   "name": "job-broker",
   "main" : "./src/broker.js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A broker to add jobs to queues and specify workers to process them",
   "scripts": {
     "test": "grunt"
@@ -10,6 +10,10 @@
     "queue",
     "broker"
   ],
+  "repository" :
+  { "type" : "git"
+  , "url" : "https://github.com/vchatterji/job-broker.git"
+  },
   "author": "Sent.ly Pte. Ltd.",
   "license": "MIT",
   "devDependencies": {
