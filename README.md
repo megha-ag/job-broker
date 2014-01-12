@@ -1,5 +1,6 @@
 job-broker
 ==========
+[![Build Status](https://travis-ci.org/vchatterji/job-broker.png?branch=master)](https://travis-ci.org/vchatterji/job-broker)
 
 A nodejs job broker module that allows AQMP style fanout queuing to Redis or SQS. It also allows you to create workers to process jobs from queues.
 
