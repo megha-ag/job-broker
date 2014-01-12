@@ -90,17 +90,17 @@ In the configuration shown, messages with type sendtweet will be pushed to the d
 Configuration Constraints
 -------------------------
 - One job type can be pushed to multiple queues (SQS or Redis), just add same jobType in the array more than once.
-  * JobType1, Worker-Any, Q1
-  * JobType1, Worker-Any, Q2
+  * `JobType1`, `Worker-Any`, `Q1`
+  * `JobType1`, `Worker-Any`, `Q2`
 
-In the example above, message with job-type JobType1 will be pushed to both Q1 and Q2. Q1 and Q2 can be either Redis or SQS queues.
-- A particular queue (with specified type Redis/SQS and name queue-name) can only be associated with one jobType. The reason why this is disallowed is because if W1 already processed the message from Q1, W2 would never get the message. Similarly if W2 processed the message, W1 would never get the message. Since Node is not multi-threaded, such a configuration does not make sense.
+In the example above, message with job-type `JobType1` will be pushed to both `Q1` and `Q2`. `Q1` and `Q2` can be either Redis or SQS queues.
+- A particular queue (with specified type Redis/SQS and name queue-name) can only be associated with one jobType. The reason why this is disallowed is because if `W1` already processed the message from `Q1`, `W2` would never get the message. Similarly if `W2` processed the message, `W1` would never get the message. Since Node is not multi-threaded, such a configuration does not make sense.
 i.e.
-  * JobType-Any, Worker-Any, Q1
-  * JobType-Any, Worker-Any, Q1
+  * `JobType-Any`, `Worker-Any`, `Q1`
+  * `JobType-Any`, `Worker-Any`, `Q1`
 
 is not allowed
-- Queue names can be 1-15 characters in length and must only consist of [a-z0-9] case insensitive.
+- Queue names can be 1-15 characters in length and must only consist of `[a-z0-9]` case insensitive.
 
 Flow of message processing
 --------------------------
@@ -122,32 +122,32 @@ Structure of a message
 }
 ```
 
-The id of the message is not specified when it is pushed to the queue. After the object is successfully pushed to the queue, the message returned in the queue-success event will have the id populated.
+The `id` of the message is not specified when it is pushed to the queue. After the object is successfully pushed to the queue, the message returned in the `queue-success` event will have the `id` populated.
 
-The id will also be populated when messages are read from the queue and processed by workers.
+The `id` will also be populated when messages are read from the queue and processed by workers.
 
 Broker Interface
 ----------------
 The broker provides the following functions:
 
-1. push(message) - This pushes the message to one or more queues depending on jobType specified in the message.
-2. pushMany(messages) - This pushes an array of messages to a single queue. All the messages in the array must have one jobType and that jobType must correspond to a single queue. This method can only be invoked once. The invoker must listed for the queue-pushmany-completed event before pushing the next set of messages.
-3. schedule(message, when) - This pushes a message to one or more queues, but messages will only be processed after the delay (in seconds) specified by when. The delay is counted from the present time.
-4. connect() - This is the first function that should be called by a script using the broker. This call will result in a queue-ready event once a particular queue is ready. The script using the broker can count when all queues are ready or can start once a particular queue it is interested in is ready.
-5. start() - After all queues are ready, a script using the broker to start the message processing cycle.
-6. stop() - This stops the message processing cycle. 
+1. `push(message)` - This pushes the message to one or more queues depending on jobType specified in the message.
+2. `pushMany(messages)` - This pushes an array of messages to a single queue. All the messages in the array must have one `jobType` and that `jobType` must correspond to a single queue. This method can only be invoked once. The invoker must listen for the `queue-pushmany-completed` event before pushing the next set of messages.
+3. `schedule(message, when)` - This pushes a message to one or more queues, but messages will only be processed after the delay (in seconds) specified by `when`. The delay is counted from the present time.
+4. `connect()` - This is the first function that should be called by a script using the broker. This call will result in a `queue-ready` event once a particular queue is ready. The script using the broker can count when all queues are ready or can do something once a particular queue it is interested in is ready.
+5. `start()` - After all queues are ready, a script using the broker to start the message processing cycle. If this is called before ALL queues are ready, the queues that are not ready will generate a `queue-error` event.
+6. `stop()` - This stops the message processing cycle. 
 
 Broker Events
 -------------
 A script using the broker can register for certain events. The following is a list of events raised by the broker:
-* queue-ready - This event is raised when the queue is ready to start processing messages
-* queue-error - This event is raised when there is an error as a result of a queue operation
-* queue-success - This event is raised when a message was successfully queued. Please note that if a job type has multiple queues registered, then this event will be raised multiple times (one time per queue)
-* work-completed - This event is raised when a consumer signals that it is done processing the message
-* work-error - This event is raised when a consumer signals that it failed in processing the message
-* queue-deleted - This event is raised after a message is deleted
-* queue-poison - This event is raised when a message that has been dequeued too many times is automatically deleted
-* queue-pushmany-completed - An array of messages can be pushed to a queue through the broker (only if it contains messages of the same jobType, and that jobType is registered to only one queue). Also, once a pushMany call starts, another pushMany call cannot be made to the same queue while the call is in progress. This event signals that the pushMany call has completed and the script that is using the broker can now push another batch of messages
+* `queue-ready` - This event is raised when the queue is ready to start processing messages
+* `queue-error` - This event is raised when there is an error as a result of a queue operation
+* `queue-success` - This event is raised when a message was successfully queued. Please note that if a job type has multiple queues registered, then this event will be raised multiple times (one time per queue)
+* `work-completed` - This event is raised when a consumer signals that it is done processing the message
+* `work-error` - This event is raised when a consumer signals that it failed in processing the message
+* `queue-deleted` - This event is raised after a message is deleted
+* `queue-poison` - This event is raised when a message that has been dequeued too many times is automatically deleted
+* `queue-pushmany-completed` - This event signals that the `pushMany` call has completed and the script that is using the broker can now push another batch of messages. A report on the messages that were pushed to the queue is passed through this event. The structure of the report is documented next.
 
 
 Structure of a broker event notification
@@ -169,6 +169,39 @@ Structure of a broker event notification
 		"queueError":{ Object with a queue specific error if any }
 		"workerError":{ Object with a worker specific error if any }
 	}
+}
+```
+
+Structure of the report object resulting from a pushMany call
+-------------------------------------------------------------
+After a pushMany call finishes, the queue-pushmany-completed event is raised which passes a report object indicating the status of individual messages. The structure of the report object is shown below:
+```javascript
+{
+	successes:[
+		{
+			id:"id of the first message pushed",
+			jobType:"sendemail",
+			payload:{ your fancy payload object }
+		},
+		{
+			id:"id of the second message pushed",
+			jobType:"sendemail",
+			payload:{ your fancy payload object }
+		}
+	],
+	failures:[
+		{
+			message: {
+				jobType:"sendemail",
+				payload:{ your fancy payload object of the third message that failed }
+			},
+			error: {
+				errorCode:2005,
+				errorMessage:"Unexpected error: Some error message",
+				queueError: { Queue specific error. See sqsqueue.js and redisqueue.js }
+			}
+		}
+	]
 }
 ```
 
@@ -358,39 +391,6 @@ jobBroker.load("broker.json", function(result, brokerObj) {
 process.on('uncaughtException', function (err) {
   console.log('Caught exception: ' + err);
 });
-```
-
-Structure of the report object resulting from a pushMany call
--------------------------------------------------------------
-After a pushMany call finishes, the queue-pushmany-completed event is raised which passes a report object indicating the status of individual messages. The structure of the report object is shown below:
-```javascript
-{
-	successes:[
-		{
-			id:"id of the first message pushed",
-			jobType:"sendemail",
-			payload:{ your fancy payload object }
-		},
-		{
-			id:"id of the second message pushed",
-			jobType:"sendemail",
-			payload:{ your fancy payload object }
-		}
-	],
-	failures:[
-		{
-			message: {
-				jobType:"sendemail",
-				payload:{ your fancy payload object of the third message that failed }
-			},
-			error: {
-				errorCode:2005,
-				errorMessage:"Unexpected error: Some error message",
-				queueError: { Queue specific error. See sqsqueue.js and redisqueue.js }
-			}
-		}
-	]
-}
 ```
 
 Producer only configuration
