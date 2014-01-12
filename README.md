@@ -106,7 +106,7 @@ Flow of message processing
 2. When broker gets notified of a new message, then:
   * Broker sets the visibility timeout of the message as specified in the config
   * During invisibility timeout, the same message will not be notified to any queue listener
-  * The broker passes the message to a workers
+  * The broker passes the message to a worker
   * Once the workers callback that the message is processed, broker deletes the message
   * If workers fail, the message will be notified to the broker again after the invisibility timeout
 
@@ -153,6 +153,10 @@ Structure of a message
 	payload: Object
 }
 ```
+
+The id of the message is not specified when it is pushed to the queue. After the object is successfully pushed to the queue, the message returned in the queue-success event will have the id populated.
+
+The id will also be populated when messages are read from the queue and processed by workers.
 
 Sample code that listens for messages
 -------------------------------------
@@ -211,6 +215,14 @@ broker.load("broker.json", function(result, brokerObj) {
 			if(queuesInitialized === numQueues) {
 				//Start listening for messages
 				brokerObj.start();
+				//Push a single message. Note: id is not specified
+				//brokerObj.push({ 
+				//	jobType: "sendemail", 
+				//	payload: { 
+				//		some:"fancy",
+				//		obj:"val"
+				//	} 
+				//});
 			}
 		});
 		
@@ -224,6 +236,160 @@ process.on('uncaughtException', function (err) {
 });
 ```
 
+Pushing messages in batches
+---------------------------
+Pushing messages in batches makes sense for SQS as we want to avoid additional RTTs to SQS. The following code shows how to accomplish this. To run the code, pass in the number of messages you would like to push from the command line:
+```
+node producer.js 100
+```
+
+The code for producer.js is listed below:
+```javascript
+/* jslint node: true */
+"use strict";
+var path = require("path");
+var brokerModule = require("job-broker");
+var broker;
+
+var counter = 0;
+var messagesToProduce;
+if(process.argv && process.argv[2] && !isNaN(parseInt(process.argv[2]))) {
+	messagesToProduce = parseInt(process.argv[2]);
+}
+else {
+	messagesToProduce = 100;
+}
+
+console.log("I will produce " + messagesToProduce + " messages.");
+
+var producedSoFar = 0;
+
+function produce() {
+	var messages = [];
+	
+	//batch size for AWS is max 10
+	for(var i=0; i<10; i++) {
+		var message = {};
+		message.jobType = "sendemail";
+		message.payload = {};
+		message.payload.from = "me@sent.ly";
+		message.payload.to = "you@gmail.com";
+		message.payload.text = "";
+
+		if(producedSoFar < messagesToProduce) {
+			message.payload.text = "Message " + (producedSoFar + 1) + " intime: " + (new Date()).toTimeString().split(' ')[0];
+			messages.push(message);
+			producedSoFar++;
+		}
+		else {
+			break;
+		}
+	}
+	
+	if(messages.length > 0) {
+		broker.pushMany(messages);
+	}
+	else {
+		console.log("pushMany calls have finished!");
+	}
+}
+
+var numQueueAlerts = 0;
+
+var jobBroker = new brokerModule.JobBroker();
+
+jobBroker.load("broker.json", function(result, brokerObj) {
+	if(result.errorCode) {
+		console.log("Oops:" + result.errorMessage);
+		console.log(result);
+	}
+	else {
+		broker = brokerObj;
+		broker.on("queue-error", function(err, msg) {
+			console.log("ERROR:");
+			console.log(err);
+			console.log(msg);
+		});
+		
+		broker.on("queue-success", function(err, msg) {
+			numQueueAlerts++;
+			console.log("Queued so far:" + numQueueAlerts);
+		});
+		
+		broker.on("queue-pushmany-completed", function(report) {
+			console.log("----------- Batch completed -----------");
+			console.log(JSON.stringify(report));
+			console.log("----------- Batch completed -----------");
+			//Let's push more is needed
+			produce();
+		});
+		
+		//Change this to the number of queues in the config files
+		var numQueues = 1;
+		
+		//The number of queues that have connected to their servers
+		var queuesInitialized = 0;
+		
+		broker.on("queue-ready", function() {
+			queuesInitialized++;
+			if(queuesInitialized === numQueues) {
+				produce();
+			}
+		});
+		
+		broker.connect();
+	}
+});
+
+process.on('uncaughtException', function (err) {
+  console.log('Caught exception: ' + err);
+});
+```
+
+Structure of the report object resulting from a pushMany call
+-------------------------------------------------------------
+After a pushMany call finishes, the queue-pushmany-completed event is raised which passes a report object indicating the status of individual messages. The structure of the report object is shown below:
+```javascript
+{
+	successes:[
+		{
+			id:"id of the first message pushed",
+			jobType:"sendemail",
+			payload:{ your fancy payload object }
+		},
+		{
+			id:"id of the second message pushed",
+			jobType:"sendemail",
+			payload:{ your fancy payload object }
+		}
+	],
+	failures:[
+		{
+			message: {
+				jobType:"sendemail",
+				payload:{ your fancy payload object of the third message that failed }
+			},
+			error: {
+				errorCode:2005,
+				errorMessage:"Unexpected error: Some error message",
+				queueError: { Queue specific error. See sqsqueue.js and redisqueue.js }
+			}
+		}
+	]
+}
+```
+
+Unit Tests
+----------
+The project defines some unit tests (jasmine) that can be executed via grunt (linting, tests related to configuration errors). Since this module is meant to be part of some other project, the tests can be executed after you install it. To execute the tests:
+```
+npm install job-broker
+cd node_modules/job-broker
+npm install
+grunt
+```
+
+Please help improve this module by adding more unit tests.
 
 Performance
 -----------
