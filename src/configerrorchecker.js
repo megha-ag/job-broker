@@ -10,6 +10,10 @@ exports.checker = function(cb, cp) {
 	//This object will be passed to the callback if callback is defined
 	var resultObj;
 	
+	//We need to check that a queue with particular module and name is defined only once
+	//Thus, we maintain a simple hashtable of queuemoduleName + queueName
+	var queueMap = {};
+	
 	//Callback with error result
 	function makeCallback() {	
 		if(callback) {
@@ -17,6 +21,7 @@ exports.checker = function(cb, cp) {
 		}
 	}
 	
+	//Check that the config file exists
 	checker.checkFileExistsError = function(errorCodes, fs, path) {
 		//Check if file exists
 		try {
@@ -41,6 +46,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//Checks if there is a JSON error while loading config
 	checker.checkJsonLoadingError = function(errorCodes, config, configPath) {
 		try
 		{
@@ -56,6 +62,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//The workers node must be defined in the config
 	checker.checkWorkersNode = function(errorCodes, workerObjs) {
 		if(!workerObjs) {
 			//The workers node is not defined
@@ -74,6 +81,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//The job-type must be specified
 	checker.checkJobType = function(errorCodes, workerConfig, i) {
 		if(!workerConfig["job-type"]) {
 			//The object node doesn't have any job-type
@@ -85,6 +93,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//A worker must be defined
 	checker.checkWorkerNode = function(errorCodes, workerConfig, i) {
 		if(!workerConfig["worker"]) {
 			//The object node doesn't define a worker
@@ -96,6 +105,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//A worker's module must be defined
 	checker.checkWorkerModule = function(errorCodes, workerObj, i) {
 		if(!workerObj["worker-module"]) {
 			//The worker object node doesn't define a worker-module
@@ -107,6 +117,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//Check that the worker module can be loaded
 	checker.checkLoadWorkerModule = function(errorCodes, path, workerObj, workerModuleName, i, checkerObj) {
 		//Path to the module
 		var workerModulePath;
@@ -146,6 +157,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//Check that a queue is specified
 	checker.checkQueueNode = function(errorCodes, workerConfig, i) {
 		if(!workerConfig["queue"]) {
 			//The object node doesn't define a queue
@@ -157,6 +169,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//Check that a queue module is specified
 	checker.checkQueueModule = function(errorCodes, queueObj, i) {
 		if(!queueObj["queue-module"]) {
 			//The queue object node doesn't define a queue-module
@@ -168,6 +181,7 @@ exports.checker = function(cb, cp) {
 		return false;
 	};
 	
+	//Check that the queue name is specified
 	checker.checkQueueName = function(errorCodes, queueObj, i) {
 		if(!queueObj["queue-name"]) {
 			//The queue object node doesn't define a queue-name
@@ -176,9 +190,22 @@ exports.checker = function(cb, cp) {
 			makeCallback();
 			return true;
 		}
+		//Check that it is complaint with our names policy
+		var patt1 = /^[a-z0-9]+$/i;
+		if(queueObj["queue-name"].length > 15 || !patt1.test(queueObj["queue-name"])) {
+			//The queuename is invalid
+			resultObj = util._extend({}, errorCodes.brokerConfig_QueueNameInvalid);
+			resultObj.errorMessage = resultObj.errorMessage.replace("_", queueObj["queue-name"]);
+			makeCallback();
+			patt1 = null;
+			return true;
+		}
+		
+		patt1 = null;
 		return false;
 	};
 	
+	//Check that the queue module can be loaded
 	checker.checkLoadQueueModule = function(errorCodes, path, jobType, queueModuleName, queueName, queueObj, i, chk) {
 		//Path to the module
 		var queueModulePath;
@@ -214,6 +241,25 @@ exports.checker = function(cb, cp) {
 			resultObj.errorMessage = resultObj.errorMessage.replace("_2_", err);
 			makeCallback();
 			return true;
+		}
+		
+		return false;
+	};
+	
+	//A particular queue (with module M and name N) cannot be defined twice
+	checker.checkQueueConstraint = function(errorCodes, queueModuleName, queueName) {
+		var qm = queueModuleName.toLowerCase();
+		var qn = queueName.toLowerCase();
+		if(queueMap[qm + "," + qn]) {
+			//It's already defined
+			resultObj = util._extend({}, errorCodes.brokerConfig_QueueDefinedTwice);
+			resultObj.errorMessage = resultObj.errorMessage.replace("_1_", queueModuleName);
+			resultObj.errorMessage = resultObj.errorMessage.replace("_2_", queueName);
+			makeCallback();
+			return true;
+		}
+		else {
+			queueMap[qm + "," + qn] = qm + "," + qn;
 		}
 		
 		return false;

@@ -117,7 +117,7 @@ var JobBroker = function() {
 					//Store it
 					var queueObj = workerConfig["queue"];
 				
-					//It must comtaina a queue-module node
+					//It must comtain a queue-module node
 					if(checker.checkQueueModule(errorCodes, queueObj, i)) {
 						return;
 					}
@@ -149,11 +149,18 @@ var JobBroker = function() {
 					//Let's add some meta data:
 					workerModule.workerNumber = (i+1);
 					workerModule.moduleName = workerModuleName;
+					
+					if(checker.checkQueueConstraint(errorCodes, queueModuleName, queueName)) {
+						return true;
+					}
 				
 					//Register this stuff with the broker
 					broker.register(jobType, workerModule, queueModule);
 				}
 
+				//We don't need the checker anymore
+				checker = null;
+				
 				//Success
 				var resultObj = util._extend({}, errorCodes.none);
 				if(callback) {

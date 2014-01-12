@@ -17,6 +17,8 @@ exports.errors = {
 		brokerConfig_QueueNameMissing: { errorCode: 1013, errorMessage:"Worker [_]: queue-name must be set" },
 		brokerConfig_QueueModuleCouldNotBeLoaded: { errorCode: 1014, errorMessage:"Worker Module[_]: queue module could not be loaded" },
 		brokerConfig_QueueModuleCouldNotBeInitialized: { errorCode: 1015, errorMessage:"Initialization Error in Worker Module[_1_]: Queue module error - _2_" },
+		brokerConfig_QueueDefinedTwice: { errorCode: 1016, errorMessage:"Queue with Module[_1_] and Name[_2_] is defined more than once" },
+		brokerConfig_QueueNameInvalid: { errorCode: 1017, errorMessage:"Queue name[_] is invalid. Queue names (case-insensitive) can only be 15 characters and contain only characters A-Z or 1-9" },
 		brokerConfig_UnknownError: { errorCode: 1999, errorMessage:"An unknown error occurred:[_]" },
 		queueInit_ErrorLoadingQueuesList: { errorCode: 2000, errorMessage:"Could not load list of queues - _" },
 		queueInit_ErrorCreatingQueue: { errorCode: 2001, errorMessage:"Could not create queue[_1_] - _2_" },

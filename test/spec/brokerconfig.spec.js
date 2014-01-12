@@ -142,6 +142,16 @@ describe("Testing of the broker configuration module", function () {
 	waitsFor(resultCheck);
   });
 
+  it("checks for error when a queue node's queue-name is invalid", function () {
+	callResult = undefined;
+	broker.load(getTestFilePath("badqueuename.json"), function(result) {
+		//Workers node not defined
+		expect(result.errorCode).toBe(1017);
+		callResult = result;
+	});
+	waitsFor(resultCheck);
+  });
+
   it("checks for error when a queue node's queue-module does not exist", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("queuebadmodule.json"), function(result) {
@@ -157,6 +167,16 @@ describe("Testing of the broker configuration module", function () {
 	broker.load(getTestFilePath("queuebadinitialization.json"), function(result) {
 		//Workers node not defined
 		expect(result.errorCode).toBe(1015);
+		callResult = result;
+	});
+	waitsFor(resultCheck);
+  });
+
+  it("checks that for a queue with module M and name N (M,N) occurs only once in config", function () {
+	callResult = undefined;
+	broker.load(getTestFilePath("dupequeues.json"), function(result) {
+		//Workers node not defined
+		expect(result.errorCode).toBe(1016);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
