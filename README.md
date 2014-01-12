@@ -379,6 +379,54 @@ After a pushMany call finishes, the queue-pushmany-completed event is raised whi
 }
 ```
 
+Producer only configuration
+---------------------------
+It is a common use case for a Nodejs webapp or REST API to be producing messages and another Nodejs app to be consuming and processing them. In such a case, a worker definition is not required for the API/Web app since it will not be consuming messages. For example, in the configuration defined in the examples so far, if the sendemail message was being produced by a web app, then the web app should define the worker module as noworker. This configuration is shown below:
+```javascript
+{
+	"workers": [
+		{
+			"job-type":"sendtweet",
+			"worker": {
+				"worker-module":"noworker"
+			},
+			"queue" : {
+				"queue-module":"redisqueue",
+				"queue-name":"yourqueue",
+				"queue-settings": {
+					"host":"127.0.0.1",
+					"port":"6379",
+					"ns":"rsmq",
+					"polling-interval":3000,
+					"invisibility-timeout":3600,
+					"max-dequeue-count":3
+				}
+			}
+		},
+		{
+			"job-type":"sendemail",
+			"worker": {
+				"worker-module":"noworker"
+			},
+			"queue" : {
+				"queue-module":"sqsqueue",
+				"queue-name":"yoursqsqueue",
+				"queue-settings": {
+					"polling-interval":20,
+					"invisibility-timeout":3600,
+					"aws-config-file":"aws.json",
+					"max-dequeue-count":3,
+					"delete-frequency-seconds":5
+				}
+			}
+		}
+	]
+}
+```
+
+Thus, the web app/REST API shall only produce the messages and push them to the appropriate queues. The consumer Nodejs app will have the full configuration with a proper worker module defined which will do the actual work.
+
+
 Unit Tests
 ----------
 The project defines some unit tests (jasmine) that can be executed via grunt (linting, tests related to configuration errors). Since this module is meant to be part of some other project, the tests can be executed after you install it. To execute the tests:
