@@ -100,6 +100,7 @@ i.e.
   * JobType-Any, Worker-Any, Q1
 
 is not allowed
+- Queue names can be 1-15 characters in length and must only consist of [a-z0-9] case insensitive.
 
 Flow of message processing
 --------------------------
