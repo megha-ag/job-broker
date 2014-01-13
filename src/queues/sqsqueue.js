@@ -111,7 +111,16 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		
 		try
 		{
-			AWS.config.loadFromPath(path.join(__dirname, '../../' + queue.settings["aws-config-file"]));
+			var awsFile = queue.settings["aws-config-file"];
+			if(awsFile.charAt(0) == '/') {
+				//Absolute path
+				AWS.config.loadFromPath(awsFile);
+			}
+			else {
+				//Path relative to module installation
+				AWS.config.loadFromPath(path.join(__dirname,  '../../../../' + awsFile));
+			}
+			
 			sqs = new AWS.SQS();
 		}
 		catch(err) {
