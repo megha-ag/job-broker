@@ -413,7 +413,10 @@ jobBroker.load("broker.json", function(result, brokerObj) {
 		
 		broker.on("queue-pushmany-completed", function(report) {
 			console.log("----------- Batch completed -----------");
-			console.log(JSON.stringify(report));
+			console.log("Success cases:");
+			console.log(JSON.stringify(report.successes));
+			console.log("Failure cases:");
+			console.log(JSON.stringify(report.failures));
 			console.log("----------- Batch completed -----------");
 			//Let's push more is needed
 			produce();
