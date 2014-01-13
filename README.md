@@ -2,7 +2,10 @@ job-broker
 ==========
 [![Build Status](https://travis-ci.org/vchatterji/job-broker.png?branch=master)](https://travis-ci.org/vchatterji/job-broker) 
 
-This code is the latest code and not a release. For release code, please use a release branch (they end with -release)
+This branch corresponds to version:
+v0.0.6-pre
+
+Note: Only branches that end with -rel are release branches. If the version shown above has -pre, then its a pre-release version.
 
 A nodejs job broker module that allows [AMQP](http://www.rabbitmq.com/tutorials/amqp-concepts.html) style fanout queuing to Redis or SQS. It also allows you to create workers to process jobs from queues.
 
