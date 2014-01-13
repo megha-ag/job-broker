@@ -8,7 +8,8 @@ A nodejs job broker module that allows [AMQP](http://www.rabbitmq.com/tutorials/
 This branch corresponds to version:
 v0.0.6-pre
 
-Note: Only branches that end with -rel are release branches. If the version shown above has -pre, then its a pre-release version.
+Note: Only branches that end with -rel are release branches. 
+If the version shown above has -pre, then its a pre-release version.
 ```
 
 Installation
