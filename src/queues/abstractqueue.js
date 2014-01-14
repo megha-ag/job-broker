@@ -40,6 +40,7 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 	
 	this.errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 	
+	//Make sure polling-interval is defined in settings
 	this.initPollingInterval = function() {
 		if(!queue.settings["polling-interval"]) {
 			queue.throwError("This module's settings need a polling-interval node");
@@ -52,6 +53,8 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 		}
 	};
 	
+	
+	//Make sure invisibility-timeout is defined in settings
 	this.initInvisibilityTimeout = function() {
 		if(!queue.settings["invisibility-timeout"]) {
 			queue.throwError("This module's settings need a invisibility-timeout node");
@@ -63,6 +66,7 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 		}
 	};
 	
+	//Make sure max-dequeue-count is defined in settings
 	this.initMaxDequeueCount = function() {
 		if(!queue.settings["max-dequeue-count"]) {
 			queue.maxDequeueCount = 5;
@@ -75,60 +79,71 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 		}
 	};
 	
+	//Make sure settings element is defined in config
 	this.requireSettings = function() {
 		if(!queue.settings) {
 			queue.throwError("This module requires settings to be defined");
 		}
 	};
 	
+	//Has the client already made a call to pushMany and is now making
+	//another call before the queue-pushmany-completed event?
 	this.isPushManyRunning = function() {
 		if(this.pushManyInProgress) {
 			var err = util._extend({}, this.errorCodes.queuePushMany_AlreadyPushing);
-			err.errorMessage = err.errorMessage.replace("_", this.jobType);
+			err.errorMessage = util.format(err.errorMessage, this.jobType);
 			queue.onError(err);
 			return true;
 		}
 		return false;
 	};
 	
+	//Utility function to throw an error with the queue name prefixed
 	this.throwError = function(msg) {
 		throw queue.name + ":" + msg;
 	};
 	
+	//Utility function to log error to console with the queue name prefixed
 	this.log = function(message) {
 		console.log(queue.name + ":" + message);
 	};
 	
-	//This should be monkey patched in children, but we define it here
-	//just in case a child does not define it.
+	//Initialize the settings of the queue
 	this.init = function() {
 		queue.log("init() not implemented");
 	};
 	
+	//Push a message to the queue
 	this.push = function(message) {
 		queue.log("push() not implemented");
 	};
 	
+	//Push an array of messages to the queue
 	this.pushMany = function(messages) {
 		queue.log("pushMany() not implemented");
 	};
 	
+	//Push a message setting ts delay in seconds from now when it can be popped
 	this.schedule = function(message, when) {
 		queue.log("schedule() not implemented");
 	};
 	
-	this.delete = function(message) {
+	//Delete a specified message from the queue
+	this.deleteMessage = function(message) {
 		queue.log("delete() not implemented");
 	};
 	
+	//Sets the messages invisibility timeout
 	this.setInvisibilityTimeout = function (message, when) {
 		queue.log("setInvisibilityTimeout() not implemented");
 	};
 	
+	//Start listening for messages
 	this.start = function () {
 		queue.log("start() not implemented");
 	};
 	
+	//Stop listening for messages
 	this.stop = function () {
 		queue.log("stop() not implemented");
 	};
@@ -145,22 +160,26 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 		this.errorFunction(err, message);
 	};
 	
+	//For internal use only
 	this.onReady = function() {
 		this.readyFunction();
 	};
 	
+	//For internal use only
 	this.pushInitializationFailure = function(message) {
 		var queueError = queue.errorCodes.queuePush_FailedToInitialize;
 		queue.pushCallback(queueError, message);
 		queueError = null;
 	};
 	
+	//For internal use only
 	this.deleteInitializationFailure = function(message) {
 		var queueError = queue.errorCodes.queueDelete_FailedToInitialize;
 		queue.deleteCallback(queueError, message);
 		queueError = null;
 	};
 	
+	//For internal use only
 	this.visibilityInitializationFailure = function(message) {
 		var queueError = queue.errorCodes.queueInvisibilityTimeout_FailedToInitialize;
 		queue.visibilityCallback(queueError, message);

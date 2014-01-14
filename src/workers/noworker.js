@@ -13,8 +13,6 @@ var AbstractWorker = require(path.join(__dirname, "/abstractworker.js"));
 exports.worker = function() {
 	//Create instance
 	var worker = new AbstractWorker("noworker");
-	//store worker module settings
-	var settings;
 	
 	//Initialize
 	worker.init = function(workerSettings) {

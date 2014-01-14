@@ -27,7 +27,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				if(err) {
 					//If we have an error, raise it and callback
 					var queueError = util._extend({}, queue.errorCodes.queueInit_ErrorLoadingQueuesList);
-					queueError.errorMessage = queueError.errorMessage.replace("_", err);
+					queueError.errorMessage = util.format(queueError.errorMessage, err);
 					queueError.queueError = err;
 					queue.onError(queueError);
 					callback();
@@ -51,8 +51,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 							//Not what we were expecting
 							if(err) {
 								queueError = util._extend({}, queue.errorCodes.queueInit_ErrorCreatingQueue);
-								queueError.errorMessage = queueError.errorMessage.replace("_1_", queue.queueName);
-								queueError.errorMessage = queueError.errorMessage.replace("_2_", err);
+								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 								queueError.queueError = err;
 								queue.onError(queueError);
 								callback();
@@ -60,8 +59,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 							}
 							else {
 								queueError = util._extend({}, queue.errorCodes.queueInit_ErrorCreatingQueueUnexpectedResponse);
-								queueError.errorMessage = queueError.errorMessage.replace("_1_", queue.queueName);
-								queueError.errorMessage = queueError.errorMessage.replace("_2_", resp);
+								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
 								queue.onError(queueError);
 								callback();
 								return;
@@ -146,7 +144,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		{
 			//Callback with the error
 			var qError = util._extend({}, queue.errorCodes.queuePush_PushError);
-			qError.errorMessage = qError.errorMessage.replace("_", err + ":" + resp);
+			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.pushCallback(qError, message);
 			qError = null;
@@ -279,7 +277,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		else {
 			//Callback with error
 			var qError = util._extend({}, queue.errorCodes.queueDelete_DeleteError);
-			qError.errorMessage = qError.errorMessage.replace("_", err + ":" + resp);
+			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.deleteCallback(qError, message);
 			qError = null;
@@ -287,7 +285,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	}
 	
 	//Delete a message from the queue
-	queue.delete = function(message) {
+	queue.deleteMessage = function(message) {
 		if(!queue.queueInitialized) {
 			//callback with an error
 			setTimeout(function() { queue.deleteInitializationFailure(message); }, 0);
@@ -311,7 +309,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		else {
 			//Callback with error
 			var qError = util._extend({}, queue.errorCodes.queueInvisibilityTimeout_SetError);
-			qError.errorMessage = qError.errorMessage.replace("_", err + ":" + resp);
+			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.visibilityCallback(qError, message);
 			qError = null;
@@ -348,8 +346,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		if(err) {
 			//Raise an error
 			var queueError = util._extend({}, queue.errorCodes.queueReceive_ErrorReceivingMessage);
-			queueError.errorMessage = queueError.errorMessage.replace("_1_", queue.queueName);
-			queueError.errorMessage = queueError.errorMessage.replace("_2_", err);
+			queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 			queueError.queueError = err;
 			queue.onError(queueError);
 			queueError = null;

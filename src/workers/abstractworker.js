@@ -39,7 +39,7 @@ function AbstractWorker(name) {
 		}
 		catch(err) {
 			var error = util._extend({}, this.errorCodes.workerWork_UnexpectedError);
-			error.errorMessage = error.errorMessage + err;
+			error.errorMessage = util.format(error.errorMessage, err);
 			error.workerError = err;
 			setTimeout(function() { worker.processCallback(error, message); }, 0);
 		}

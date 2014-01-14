@@ -176,14 +176,14 @@ var JobBroker = function() {
 				var resultObj;
 				if(!errorCodes) {
 					resultObj = { errorCode: 1999, errorMessage:"An unknown error occurred:[_]" };
-					resultObj.errorMessage = resultObj.errorMessage.replace("_", err);
+					resultObj.errorMessage = util.format(resultObj.errorMessage, err);
 					if(callback) {
 						callback(resultObj);
 					}
 				}
 				else {
 					resultObj = util._extend({}, errorCodes.brokerConfig_UnknownError);
-					resultObj.errorMessage = resultObj.errorMessage.replace("_", err);
+					resultObj.errorMessage = util.format(resultObj.errorMessage, err);
 					resultObj.configError = err;
 					if(callback) {
 						callback(resultObj);

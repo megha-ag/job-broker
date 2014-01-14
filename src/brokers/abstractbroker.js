@@ -68,7 +68,7 @@ function AbstractBroker(name) {
 				//Yes it did, let's emit a work-completed event
 				myBroker.emit("work-completed", metaError, message);
 				//Try to delete the message
-				myQueue.delete(message);
+				myQueue.deleteMessage(message);
 			}
 			else {
 				//Error while workin, emit it
@@ -155,7 +155,7 @@ function AbstractBroker(name) {
 			//as it is a "poison" message
 			if(myQueue.maxDequeueCount && message.dequeueCount > myQueue.maxDequeueCount) {
 				myBroker.emit("queue-poison", messageInfo);
-				myQueue.delete(message);
+				myQueue.deleteMessage(message);
 				return;
 			}
 			

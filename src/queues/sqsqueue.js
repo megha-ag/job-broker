@@ -51,8 +51,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				}, function(err, data) {
 					if(err) {
 						var queueError = util._extend({}, queue.errorCodes.queueInit_ErrorCreatingQueue);
-						queueError.errorMessage = queueError.errorMessage.replace("_1_", queue.queueName);
-						queueError.errorMessage = queueError.errorMessage.replace("_2_", err);
+						queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 						queueError.queueError = err;
 						queue.onError(queueError);
 						callback();
@@ -144,7 +143,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		if(err) {
 			//Callback with the error
 			var qError = util._extend({}, queue.errorCodes.queuePush_PushError);
-			qError.errorMessage = qError.errorMessage.replace("_", err + ":" + err);
+			qError.errorMessage = util.format(qError.errorMessage, err);
 			qError.queueError = err;
 			queue.pushCallback(qError, message);
 			qError = null;
@@ -227,7 +226,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			for(i=0; i<pushManyResult.Failed.length; i++) {
 				if(pushManyResult.Failed[i].Id === message.id) {
 					var qError = util._extend({}, queue.errorCodes.queuePush_PushError);
-					qError.errorMessage = qError.errorMessage.replace("_", pushManyResult.Failed[i].Message);
+					qError.errorMessage = util.format(qError.errorMessage, pushManyResult.Failed[i].Message);
 					
 					//Detect a batch failure
 					if(pushManyResult.Failed[i].queueError) {
@@ -364,7 +363,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		if(err) {
 			//Callback with error
 			var qError = util._extend({}, queue.errorCodes.queueInvisibilityTimeout_SetError);
-			qError.errorMessage = qError.errorMessage.replace("_", err);
+			qError.errorMessage = util.format(qError.errorMessage, err);
 			qError.queueError = err;
 			queue.visibilityCallback(qError, message);
 			qError = null;
@@ -431,7 +430,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			for(i=0; i<deleteCallbackBatch.Failed.length; i++) {
 				if(deleteCallbackBatch.Failed[i].Id === message.id) {
 					var qError = util._extend({}, queue.errorCodes.queueDelete_DeleteError);
-					qError.errorMessage = qError.errorMessage.replace("_", deleteCallbackBatch.Failed[i].Message);
+					qError.errorMessage = util.format(qError.errorMessage, deleteCallbackBatch.Failed[i].Message);
 					
 					//Detect a batch failed error
 					if(deleteCallbackBatch.Failed[i].queueError) {
@@ -612,8 +611,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			if(err) {
 				//Raise an error
 				var queueError = util._extend({}, queue.errorCodes.queueReceive_ErrorReceivingMessage);
-				queueError.errorMessage = queueError.errorMessage.replace("_1_", queue.queueName);
-				queueError.errorMessage = queueError.errorMessage.replace("_2_", err);
+				queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 				queueError.queueError = err;
 				queue.onError(queueError);
 				queueError = null;
@@ -640,7 +638,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	}
 	
 	//Store the message to be deleted in deleteBatch
-	queue.delete = function(message) {
+	queue.deleteMessage = function(message) {
 		deleteService.push(message);
 	};
 	

@@ -29,7 +29,7 @@ exports.checker = function(cb, cp) {
 			// Is it a directory?
 			if (stats.isDirectory()) {
 				resultObj = util._extend({}, errorCodes.brokerConfig_ConfigFileNotFound);
-				resultObj.errorMessage = resultObj.errorMessage.replace("_", configPath);
+				resultObj.errorMessage = util.format(resultObj.errorMessage, configPath);
 				makeCallback();
 				return true;
 			}
@@ -37,7 +37,7 @@ exports.checker = function(cb, cp) {
 		catch (e) {
 			//It doesn't exist
 			resultObj = util._extend({}, errorCodes.brokerConfig_ConfigFileNotFound);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", configPath);
+			resultObj.errorMessage = util.format(resultObj.errorMessage, configPath);
 			makeCallback();
 			return true;
 		}
@@ -84,7 +84,7 @@ exports.checker = function(cb, cp) {
 		if(!workerConfig["job-type"]) {
 			//The object node doesn't have any job-type
 			resultObj = util._extend({}, errorCodes.brokerConfig_JobTypeMissing);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
+			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
 		}
@@ -96,7 +96,7 @@ exports.checker = function(cb, cp) {
 		if(!workerConfig.worker) {
 			//The object node doesn't define a worker
 			resultObj = util._extend({}, errorCodes.brokerConfig_WorkerNodeMissing);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
+			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
 		}
@@ -108,7 +108,7 @@ exports.checker = function(cb, cp) {
 		if(!workerObj["worker-module"]) {
 			//The worker object node doesn't define a worker-module
 			resultObj = util._extend({}, errorCodes.brokerConfig_WorkerModuleMissing);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
+			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
 		}
@@ -134,7 +134,7 @@ exports.checker = function(cb, cp) {
 		catch(err) {
 			//The worker module could not be loaded
 			resultObj = util._extend({}, errorCodes.brokerConfig_WorkerModuleCouldNotBeLoaded);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", workerModuleName);
+			resultObj.errorMessage = util.format(resultObj.errorMessage, workerModuleName);
 			makeCallback();
 			return true;
 		}
@@ -147,8 +147,7 @@ exports.checker = function(cb, cp) {
 		catch(err) {
 			//The worker module could not be initialized
 			resultObj = util._extend({}, errorCodes.brokerConfig_WorkerModuleCouldNotBeInitialized);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_1_", workerModuleName);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_2_", err);
+			resultObj.errorMessage = util.format(resultObj.errorMessage, workerModuleName, err);
 			makeCallback();
 			return true;
 		}
@@ -160,7 +159,7 @@ exports.checker = function(cb, cp) {
 		if(!workerConfig.queue) {
 			//The object node doesn't define a queue
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueNodeMissing);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
+			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
 		}
@@ -172,7 +171,7 @@ exports.checker = function(cb, cp) {
 		if(!queueObj["queue-module"]) {
 			//The queue object node doesn't define a queue-module
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueModuleMissing);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
+			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
 		}
@@ -184,7 +183,7 @@ exports.checker = function(cb, cp) {
 		if(!queueObj["queue-name"]) {
 			//The queue object node doesn't define a queue-name
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueNameMissing);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
+			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
 		}
@@ -193,7 +192,7 @@ exports.checker = function(cb, cp) {
 		if(queueObj["queue-name"].length > 15 || !patt1.test(queueObj["queue-name"])) {
 			//The queuename is invalid
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueNameInvalid);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", queueObj["queue-name"]);
+			resultObj.errorMessage = util.format(resultObj.errorMessage, queueObj["queue-name"]);
 			makeCallback();
 			patt1 = null;
 			return true;
@@ -222,7 +221,7 @@ exports.checker = function(cb, cp) {
 		catch(err) {
 			//The queue module could not be loaded
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueModuleCouldNotBeLoaded);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_", queueModuleName);
+			resultObj.errorMessage = util.format(resultObj.errorMessage, queueModuleName);
 			makeCallback();
 			return true;
 		}
@@ -235,8 +234,7 @@ exports.checker = function(cb, cp) {
 		catch(err) {
 			//The queue module could not be initialized
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueModuleCouldNotBeInitialized);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_1_", queueModuleName);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_2_", err);
+			resultObj.errorMessage = util.format(resultObj.errorMessage, queueModuleName, err);
 			makeCallback();
 			return true;
 		}
@@ -251,8 +249,7 @@ exports.checker = function(cb, cp) {
 		if(queueMap[qm + "," + qn]) {
 			//It's already defined
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueDefinedTwice);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_1_", queueModuleName);
-			resultObj.errorMessage = resultObj.errorMessage.replace("_2_", queueName);
+			resultObj.errorMessage = util.format(resultObj.errorMessage, queueModuleName, queueName);
 			makeCallback();
 			return true;
 		}
