@@ -20,7 +20,7 @@ npm install -g nodeclipse
 
 Then go to the directory where you have downloaded this branch and make this an Eclipse project
 ```
-npm install -g nodeclipse
+nodeclipse -p
 ```
 
 After that open your Eclipse workspace (must be a different folder than where you downloaded this branch).
@@ -34,7 +34,7 @@ After that open your Eclipse workspace (must be a different folder than where yo
 Installation
 ------------
 ```javascript
-nodeclipse -p
+npm install job-broker
 ```
 
 Configuration Based
