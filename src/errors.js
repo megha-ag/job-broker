@@ -3,8 +3,9 @@ var util = require('util');
 exports.errors = (function() {
 	var debug = false;
 	
+	//We kep Error code none at 0 as it's convenient to check if(err.errorCode) { }
 	var errors = {
-		none: { errorCode: 0, errorMessage:undefined },
+		none: { errorCategory: "ALL", errorCode: 0, errorMessage:undefined },
 		brokerConfig_CouldNotLoadJson: { errorCategory:"CONFIG", errorCode: "JSON_PARSE_ERROR", errorMessage:"Could not load JSON configuration file!" },
 		brokerConfig_ConfigFileNotFound: { errorCategory:"CONFIG", errorCode: "FILE_NOT_FOUND", errorMessage:"The config file [%s] could not be loaded" },
 		brokerConfig_WorkersNotSpecified: { errorCategory:"CONFIG", errorCode: "NO_WORKERS_ARRAY", errorMessage:"The workers node could not be loaded" },

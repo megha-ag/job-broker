@@ -132,7 +132,7 @@ exports.worker = function() {
 	//Error codes (you should ideally define them in a module)
 	//and share them across your workers for consistency
 	var errorCode = {
-		none: { errorCode:0, errorMessage:undefined  }
+		none: { errorCategory: "ALL", errorCode:0, errorMessage:undefined  }
 	};
 	
 	//Initialize
@@ -244,10 +244,11 @@ Structure of a broker event notification
 		"payload":{ "somekey":"someval" }
 	}
 	"error": {
-		"errorCode":2002,
+		"errorCode":"ERRORCODE",
+		"errorCategory":"CATEGORY"
 		"errorMessage":"There was an error queuing the message"
-		"queueError":{ Object with a queue specific error if any }
-		"workerError":{ Object with a worker specific error if any }
+		"queueError":{ Object with a queue specific error if any, if category is "QUEUE" }
+		"workerError":{ Object with a worker specific error if any, if category is "WORKER" }
 	}
 }
 ```
@@ -278,7 +279,8 @@ After a pushMany call finishes, the `queue-pushmany-completed` event is raised w
 				payload:{ your fancy payload object of the third message that failed }
 			},
 			error: {
-				errorCode:2005,
+				errorCode:"PUSH_ERROR",
+				errorCategory:"QUEUE",
 				errorMessage:"Unexpected error: Some error message",
 				queueError: { Queue specific error. See sqsqueue.js and redisqueue.js }
 			}
