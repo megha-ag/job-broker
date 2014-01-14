@@ -31,8 +31,8 @@ After that open your Eclipse workspace (must be a different folder than where yo
 * Select the project
 * Click Finish
 
-Installation
-------------
+Installation as module in your own project
+------------------------------------------
 ```javascript
 npm install job-broker
 ```
