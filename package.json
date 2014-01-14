@@ -4,7 +4,7 @@
   "version": "0.0.6-pre",
   "description": "A broker to add jobs to queues and specify workers to process them",
   "scripts": {
-    "test": "grunt"
+    "test": "sudo grunt"
   },
   "keywords": [
     "queue",
