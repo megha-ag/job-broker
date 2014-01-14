@@ -109,7 +109,12 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		try
 		{
 			var awsFile = queue.settings["aws-config-file"];
-			if(awsFile.charAt(0) === '/') {
+			if(awsFile && awsFile.length && (
+					//Mac/Linux etc
+					awsFile.charAt(0) === '/' ||
+					//Windows
+					(awsFile.length>2 && awsFile.charAt(1) === ':')
+				)) {
 				//Absolute path
 				AWS.config.loadFromPath(awsFile);
 			}

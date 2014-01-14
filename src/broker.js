@@ -30,7 +30,15 @@ var JobBroker = function() {
 				var configPath;
 				
 				//Check if absolute or relative path
-				if(configFile.charAt(0) === '/') {
+				if(
+						configFile && configFile.length && (
+							//Mac/Linux etc
+							configFile.charAt(0) === '/' ||
+							//Windows
+							(configFile.length>2 && configFile.charAt(1) === ':')
+						)
+				)
+				{
 					configPath = configFile;
 				}
 				else {
