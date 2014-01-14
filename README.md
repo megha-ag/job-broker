@@ -11,6 +11,25 @@ v0.0.6-pre
 
 **Note:** If the version shown above ends with -pre, then its a pre-release version, otherwise its a release version.
 
+Opening Project in Eclipse
+--------------------------
+To open this project in Eclipse, you'll need [Nodeclipse and Enide](http://www.nodeclipse.org/).
+```
+npm install -g nodeclipse
+```
+
+Then go to the directory where you have downloaded this branch and make this an Eclipse project
+```
+npm install -g nodeclipse
+```
+
+After that open your Eclipse workspace (must be a different folder than where you downloaded this branch).
+
+* Go to File > Import > General > Existing Projects into Workspace.
+* Click next
+* Select this project's directory
+* Select the project
+* Click Finish
 
 Installation
 ------------
