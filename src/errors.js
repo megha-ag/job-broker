@@ -50,9 +50,13 @@ exports.errors = (function() {
 			//There is no need to pass this big object around
 			//all the time
 			if(debug) {
+				//We don't need this to be terribly efficient since we do this
+				//only in debug mode, thus we use JSON.stringify to create
+				//a deep copy of the errors object
+				
 				//We don't want anyone messing around with our errors object 
 				//as this is a singleton (due to require caching)
-				toRet.errorCodes = util._extend({}, errors);
+				toRet.errorCodes = JSON.parse(JSON.stringify(errors));
 			}
 			
 			return toRet;
