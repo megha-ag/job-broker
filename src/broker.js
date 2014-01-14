@@ -17,10 +17,6 @@ var JobBroker = function(debug) {
 		
 			var callback = callBack;
 			
-			if(debug) {
-				errorCodes.debug = true;
-			}
-			
 			try
 			{
 				//Require the nconf module
