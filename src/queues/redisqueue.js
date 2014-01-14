@@ -52,7 +52,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 						if (resp!==1) {
 							//Not what we were expecting
 							if(err) {
-								queueError = queue.getError("queueInit_ErrorCreatingQueue");
+								queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
 								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 								queueError.queueError = err;
 								queue.onError(queueError);
@@ -60,7 +60,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 								return;
 							}
 							else {
-								queueError = queue.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
+								queueError = errorCodes.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
 								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
 								queue.onError(queueError);
 								callback();

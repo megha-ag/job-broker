@@ -34,7 +34,7 @@ exports.worker = function() {
 	worker.work = function(message) {
 		console.log("WORKER SAYS:");
 		console.log(message);
-		worker.processCallback(errorCodes.none, message);
+		worker.processCallback(errorCodes.getError("none"), message);
 	};
 	
 	return worker;
