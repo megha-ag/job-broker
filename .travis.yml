@@ -6,4 +6,4 @@ service:
 before_script:
   - npm install -g grunt-cli
 install:
-  - pip install redis --use-mirrors
+  - pip install redis
