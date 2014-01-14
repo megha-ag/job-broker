@@ -4,6 +4,5 @@ node_js:
 service:
   - redis-server
 install:
-  - sudo pip install redis
   - npm install -g grunt-cli
   - npm install
