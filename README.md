@@ -34,7 +34,7 @@ After that open your Eclipse workspace (must be a different folder than where yo
 Installation
 ------------
 ```javascript
-npm install job-broker
+nodeclipse -p
 ```
 
 Configuration Based
