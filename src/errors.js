@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 exports.errors = {
 		none: { errorCode: 0, errorMessage:undefined },
 		brokerConfig_CouldNotLoadJson: { errorCode: 1000, errorMessage:"Could not load JSON configuration file!" },

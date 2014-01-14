@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 //The util for prototype inheritance
 var util = require('util');
 //Path stuff
@@ -11,7 +8,7 @@ var EventEmitter = require('events').EventEmitter;
 //Our shared worker definition
 function AbstractWorker(name) {
 	//Make this an emitter
-	EventEmitter.call(this);  
+	EventEmitter.call(this);
 	
 	//Load the error codes
 	this.errorCodes = require(path.join(__dirname, "../errors.js")).errors;

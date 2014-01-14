@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 //This worker is a placeholder worker. It is a common use-case for an application 
 //to be pushing messages from an API/Web Nodejs application and consuming them in
 //another "worker" process, possibly running on a different instance. In such a case
@@ -23,7 +20,7 @@ exports.worker = function() {
 	worker.init = function(workerSettings) {
 	};
 	
-	worker.work = function(message) {		
+	worker.work = function(message) {
 		worker.processCallback(worker.errorCodes.none, message);
 	};
 	

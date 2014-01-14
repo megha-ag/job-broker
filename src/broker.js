@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 var path = require("path");
 
 var JobBroker = function() {
@@ -88,7 +85,7 @@ var JobBroker = function() {
 					}
 				
 					//Get the node
-					var workerObj = workerConfig["worker"];
+					var workerObj = workerConfig.worker;
 				
 					//worker-module must exist
 					if(checker.checkWorkerModule(errorCodes, workerObj, i)) {
@@ -115,7 +112,7 @@ var JobBroker = function() {
 					}
 				
 					//Store it
-					var queueObj = workerConfig["queue"];
+					var queueObj = workerConfig.queue;
 				
 					//It must comtain a queue-module node
 					if(checker.checkQueueModule(errorCodes, queueObj, i)) {

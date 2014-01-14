@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 var path = require("path");
 var AbstractBroker = require(path.join(__dirname, "/abstractbroker.js"));
 

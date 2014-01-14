@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 //This worker serves no real purpose. It is here in the repo as it is 
 //used by the jasmine tests.
 
@@ -32,7 +29,7 @@ exports.worker = function() {
 	//Process the message synchronously. If asynchronous processing is 
 	//required, then make the async call and then callback:
 	//worker.processCallback(worker.errorCodes.none, message);
-	worker.work = function(message) {		
+	worker.work = function(message) {
 		console.log("WORKER SAYS:");
 		console.log(message);
 		worker.processCallback(worker.errorCodes.none, message);

@@ -2,8 +2,9 @@ module.exports = function(grunt) {
   // set up grunt
   grunt.initConfig({
     jshint: {
-      src: ['server.js', 'src/**/*.js', 'test/**/*.js'],
+      src: ['*.js', '*.json', 'src/**/*.js', 'test/**/*.js', 'src/**/*.json', 'test/**/*.json'],
       options: {
+        jshintrc:true,
         curly: true,
         eqeqeq: true,
         immed: true,
@@ -21,22 +22,23 @@ module.exports = function(grunt) {
           requirejs: true,
           describe: true,
           expect: true,
-          it: true
+          it: true,
+          waitFor:true
         }
       }
     },
 	jasmine_node: {
-	    specNameMatcher: "spec", // load only specs containing specNameMatcher
-	    projectRoot: ".",
-	    requirejs: false,
-	    forceExit: true,
-	    jUnit: {
-	      report: false,
-	      savePath : "./build/reports/jasmine/",
-	      useDotNotation: true,
-	      consolidate: true
-	    }
-	  }
+        specNameMatcher: "spec", // load only specs containing specNameMatcher
+        projectRoot: ".",
+        requirejs: false,
+        forceExit: true,
+        jUnit: {
+            report: false,
+            savePath : "./build/reports/jasmine/",
+            useDotNotation: true,
+            consolidate: true
+        }
+    }
   });
 
   // Load JSHint task

@@ -1,12 +1,9 @@
-/* jslint node: true */
-"use strict";
-
 //The path utility
 var path = require("path");
 //Load the AbstractQueue module
 var AbstractQueue = require(path.join(__dirname, "/abstractqueue.js"));
 //Load the AWS module
-var AWS = require('aws-sdk'); 
+var AWS = require('aws-sdk');
 //Util module for cloning objects etc
 var util = require("util");
 //UUID Module for generating unique id for messages in pushMany
@@ -15,7 +12,7 @@ var uuid = require('node-uuid');
 
 exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
 	//Create an instance of the AbstractQueue
-	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);	
+	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);
 	
 	//The variable for our sqs object
 	var sqs;
@@ -47,8 +44,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		if(!queue.queueInitialized) {
 			sqs.createQueue(
 				{
-					QueueName:queue.queueName, 
-					Attributes: { 
+					QueueName:queue.queueName,
+					Attributes: {
 						VisibilityTimeout: '' + queue.invisibilityTimeout
 					}
 				}, function(err, data) {
@@ -79,7 +76,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	}
 	
 	//Function to check if all settings are ok
-	queue.init = function() {	
+	queue.init = function() {
 		//This queue requires settings	
 		queue.requireSettings();
 		
@@ -98,7 +95,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			deleteFrequencySeconds = 10;
 		}
 		else {
-			deleteFrequencySeconds = parseInt(queue.settings["delete-frequency-seconds"]);
+			deleteFrequencySeconds = parseInt(queue.settings["delete-frequency-seconds"], 10);
 			if(isNaN(deleteFrequencySeconds)) {
 				queue.throwError("This module's settings, delete-frequency-seconds must be a valid integer.");
 			}
@@ -131,10 +128,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	//Initialize and raise event when ready
 	queue.connect = function() {
 		initialize(function() {
-			if(!queue.queueInitialized) {
-				//Nothing to do, error has already been raised
-			}
-			else {
+			if(queue.queueInitialized) {
 				queue.onReady();
 			}
 		});
@@ -173,7 +167,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			messageStorage.jobType = message.jobType;
 			
 			var sendOptions = {
-				QueueUrl: queueUrl, 
+				QueueUrl: queueUrl,
 				MessageBody:JSON.stringify(messageStorage),
 				DelaySeconds: when
 			};
@@ -181,7 +175,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			messageStorage = null;
 			
 			sqs.sendMessage(
-				sendOptions, 
+				sendOptions,
 				function(err, data) {
 					sendOptions = null;
 					pushCallback(message, err, data);
@@ -296,7 +290,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 		
 		//The callback after the batch of messages was pushed to SQS
-		function pushManyFinished(err, data) { 
+		function pushManyFinished(err, data) {
 			//If there was an error, we simulate a response
 			//with all the messages in the failed list
 			if(err) {
@@ -352,7 +346,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	queue.pushMany = function(messages) {
 		if(!queue.isPushManyRunning()) {
 			startPushMany(messages);
-		} 
+		}
 	};
 	
 	//Schedule a message for later sending
@@ -570,8 +564,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			if(queue.isStarted) {
 				//Initialize receiveOptions for the first time
 				if(!receiveOptions) {
-					receiveOptions = { 
-						QueueUrl: queueUrl, 
+					receiveOptions = {
+						QueueUrl: queueUrl,
 						WaitTimeSeconds:queue.pollingInterval,
 						MaxNumberOfMessages: batchSize,
 						AttributeNames:["ApproximateReceiveCount"]
@@ -596,7 +590,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			var msg = JSON.parse(message.Body);
 			msg.id = message.MessageId;
 			msg.receiptHandle = message.ReceiptHandle;
-			msg.dequeueCount = parseInt(message.Attributes["ApproximateReceiveCount"]);
+			msg.dequeueCount = parseInt(message.Attributes.ApproximateReceiveCount, 10);
 			queue.onMessageReceived(msg);
 			message = null;
 			msg = null;

@@ -1,0 +1,5 @@
+.*.md.html
+.project
+.settings
+.metadata
+.DS_Store

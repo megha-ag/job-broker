@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 //Required to set prototype of our AbstractBroker
 var util = require('util');
 //Path utils
@@ -11,7 +8,7 @@ var EventEmitter = require('events').EventEmitter;
 //Our abstract broker
 function AbstractBroker(name) {
 	//Make this an event emitter
-	EventEmitter.call(this);  
+	EventEmitter.call(this);
 	
 	//Load the error codes
 	this.errorCodes = require(path.join(__dirname, "../errors.js")).errors;
@@ -156,14 +153,14 @@ function AbstractBroker(name) {
 			
 			//If the message has been dequeued too many times, just delete it straight away
 			//as it is a "poison" message
-			if(myQueue.maxDequeueCount && message.dequeueCount > myQueue.maxDequeueCount) {	
+			if(myQueue.maxDequeueCount && message.dequeueCount > myQueue.maxDequeueCount) {
 				myBroker.emit("queue-poison", messageInfo);
 				myQueue.delete(message);
 				return;
 			}
 			
 			//Emit the event in case someone wants to watch
-			myBroker.emit("queue-received", messageInfo);			
+			myBroker.emit("queue-received", messageInfo);
 			
 			//We make sure that the message has the right job type
 			if(message.jobType.toLowerCase() === myJobType) {
@@ -238,7 +235,7 @@ function AbstractBroker(name) {
 		
 		//Record the number of queues
 		queuesNumber++;
-	};	
+	};
 	
 	//Pushes the message to all queues registered
 	//for this type of message
@@ -313,11 +310,13 @@ function AbstractBroker(name) {
 	
 	this.connect = function () {
 		for(var propt in eventMap) {
-			var queues = eventMap[propt];
-			if(queues) {
-				for(var i=0; i<queues.length; i++) {
-					var queueModule = queues[i];
-					queueModule.connect();
+			if (eventMap.hasOwnProperty(propt)) {
+				var queues = eventMap[propt];
+				if(queues) {
+					for(var i=0; i<queues.length; i++) {
+						var queueModule = queues[i];
+						queueModule.connect();
+					}
 				}
 			}
 		}
@@ -328,11 +327,13 @@ function AbstractBroker(name) {
 	//for messages
 	this.stop = function () {
 		for(var propt in eventMap) {
-			var queues = eventMap[propt];
-			if(queues) {
-				for(var i=0; i<queues.length; i++) {
-					var queueModule = queues[i];
-					queueModule.stop();
+			if(eventMap.hasOwnProperty(propt)) {
+				var queues = eventMap[propt];
+				if(queues) {
+					for(var i=0; i<queues.length; i++) {
+						var queueModule = queues[i];
+						queueModule.stop();
+					}
 				}
 			}
 		}

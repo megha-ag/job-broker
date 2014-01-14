@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 //The path utility
 var path = require("path");
 //Load the AbstractQueue module
@@ -12,7 +9,7 @@ var util = require("util");
 
 exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
 	//Create an instance of the AbstractQueue
-	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);	
+	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);
 	
 	//Variable for our rsmq instance
 	var rsmq;
@@ -70,7 +67,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 								return;
 							}
 						}
-						else 
+						else
 						{
 							//Queue is created
 							queue.queueInitialized = true;
@@ -79,7 +76,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 						}
 					});
 				}
-				else 
+				else
 				{
 					//Queue already exists
 					queue.queueInitialized = true;
@@ -95,7 +92,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	}
 	
 	//Function to check if all settings are ok
-	queue.init = function() {		
+	queue.init = function() {
 		//This queue needs settings
 		queue.requireSettings();
 		
@@ -130,10 +127,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	//Initialize the queue and callback
 	queue.connect = function() {
 		initialize(function() {
-			if(!queue.queueInitialized) {
-				//Nothing to do, error has already been raised
-			}
-			else {
+			if(queue.queueInitialized) {
 				queue.onReady();
 			}
 		});
@@ -148,7 +142,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			queue.pushCallback(queue.errorCodes.none, message);
 			return true;
 		}
-		else 
+		else
 		{
 			//Callback with the error
 			var qError = util._extend({}, queue.errorCodes.queuePush_PushError);
@@ -168,7 +162,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			//not specified
 			if(!callback) {
 				pushCallback(message, err, resp);
-			}	
+			}
 			else {
 				//A specific callback. This is used by pushMany
 				callback(message, err, resp);
@@ -224,8 +218,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 	
 		//called once all pushMany messages are pushed
-		function pushManyCallback() {	
-			queue.pushManyInProgress = false;	
+		function pushManyCallback() {
+			queue.pushManyInProgress = false;
 			queue.pushManyCallback(
 				{
 					"successes":pushedSuccessfullyMessages,
@@ -260,7 +254,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	queue.pushMany = function(messages) {
 		if(!queue.isPushManyRunning()) {
 			startPushMany(messages);
-		} 
+		}
 	};
 	
 	//push a message to the queue with a delay
@@ -366,10 +360,10 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				timerHandle = setTimeout(poller, queue.pollingInterval);
 			}
 		}
-		else 
+		else
 		{
 			//We have a message to process
-			if (resp.id) 
+			if (resp.id)
 			{
 				//We got a message, raise the received event
 				var msg = JSON.parse(resp.message);
@@ -391,7 +385,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 					timerHandle = setTimeout(poller, 0);
 				}
 			}
-			else 
+			else
 			{
 				//Otherwise revert to polling interval
 				if(queue.isStarted) {

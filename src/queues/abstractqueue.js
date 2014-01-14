@@ -1,6 +1,3 @@
-/* jslint node: true */
-"use strict";
-
 //for inheritance stuff
 var util = require('util');
 //Path stuff
@@ -48,7 +45,7 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 			queue.throwError("This module's settings need a polling-interval node");
 		}
 		
-		queue.pollingInterval = parseInt(queue.settings["polling-interval"]);
+		queue.pollingInterval = parseInt(queue.settings["polling-interval"], 10);
 		
 		if(isNaN(queue.pollingInterval)) {
 			queue.throwError("This module's settings, polling-interval must be a valid integer");
@@ -60,7 +57,7 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 			queue.throwError("This module's settings need a invisibility-timeout node");
 		}
 		
-		queue.invisibilityTimeout = parseInt(queue.settings["invisibility-timeout"]);
+		queue.invisibilityTimeout = parseInt(queue.settings["invisibility-timeout"], 10);
 		if(isNaN(queue.invisibilityTimeout)) {
 			queue.throwError("This module's settings, invisibility-timeout must be a valid integer");
 		}
@@ -71,7 +68,7 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 			queue.maxDequeueCount = 5;
 		}
 		else {
-			queue.maxDequeueCount = parseInt(queue.settings["max-dequeue-count"]);
+			queue.maxDequeueCount = parseInt(queue.settings["max-dequeue-count"], 10);
 			if(isNaN(queue.maxDequeueCount)) {
 				queue.throwError("This module's settings, max-dequeue-count must be a valid integer");
 			}

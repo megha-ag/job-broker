@@ -1,5 +1,3 @@
-/* jslint node: true */
-"use strict";
 var util = require('util');
 exports.checker = function(cb, cp) {
 	var callback = cb;
@@ -15,7 +13,7 @@ exports.checker = function(cb, cp) {
 	var queueMap = {};
 	
 	//Callback with error result
-	function makeCallback() {	
+	function makeCallback() {
 		if(callback) {
 			callback(resultObj);
 		}
@@ -95,7 +93,7 @@ exports.checker = function(cb, cp) {
 	
 	//A worker must be defined
 	checker.checkWorkerNode = function(errorCodes, workerConfig, i) {
-		if(!workerConfig["worker"]) {
+		if(!workerConfig.worker) {
 			//The object node doesn't define a worker
 			resultObj = util._extend({}, errorCodes.brokerConfig_WorkerNodeMissing);
 			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
@@ -159,7 +157,7 @@ exports.checker = function(cb, cp) {
 	
 	//Check that a queue is specified
 	checker.checkQueueNode = function(errorCodes, workerConfig, i) {
-		if(!workerConfig["queue"]) {
+		if(!workerConfig.queue) {
 			//The object node doesn't define a queue
 			resultObj = util._extend({}, errorCodes.brokerConfig_QueueNodeMissing);
 			resultObj.errorMessage = resultObj.errorMessage.replace("_", (i + 1));
