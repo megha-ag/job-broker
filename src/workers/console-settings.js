@@ -7,6 +7,8 @@ var path = require("path");
 var AbstractWorker = require(path.join(__dirname, "/abstractworker.js"));
 
 exports.worker = function() {
+	//Error codes
+	var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 	//Create instance
 	var worker = new AbstractWorker("console-settings");
 	//store worker module settings
@@ -32,7 +34,7 @@ exports.worker = function() {
 	worker.work = function(message) {
 		console.log("WORKER SAYS:");
 		console.log(message);
-		worker.processCallback(worker.errorCodes.none, message);
+		worker.processCallback(errorCodes.none, message);
 	};
 	
 	return worker;

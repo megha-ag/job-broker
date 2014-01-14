@@ -11,12 +11,12 @@ function AbstractBroker(name) {
 	EventEmitter.call(this);
 	
 	//Load the error codes
-	this.errorCodes = require(path.join(__dirname, "../errors.js")).errors;
+	var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 	
 	//Record our name
 	this.name = name;
 	
-	//Record self reference
+	//Record self reference (for thinking convenience)
 	var broker = this;
 	
 	//Event map to map a jobType to a queue
@@ -93,7 +93,7 @@ function AbstractBroker(name) {
 			}
 			else {
 				//Record success meta-info and emit success
-				errorInfo = getError(myWorker, myQueue, myQueue.errorCodes.none);
+				errorInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
 				myBroker.emit("queue-success", errorInfo, msg);
 			}
 		};
@@ -117,7 +117,7 @@ function AbstractBroker(name) {
 			var myQueue = queueModule;
 			var myBroker = broker;
 			
-			var messageInfo = getError(myWorker, myQueue, myQueue.errorCodes.none);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
 			messageInfo.report = report;
 			myBroker.emit("queue-pushmany-completed", messageInfo);
 		};
@@ -128,7 +128,7 @@ function AbstractBroker(name) {
 			var myQueue = queueModule;
 			var myBroker = broker;
 			
-			var messageInfo = getError(myWorker, myQueue, myQueue.errorCodes.none);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
 			messageInfo.error = derr;
 			//If we had a delete error, then emit it
 			//Warning this can cause duplicate processing
@@ -149,7 +149,7 @@ function AbstractBroker(name) {
 			var myWorker = workerModule;
 			var myQueue = queueModule;
 			
-			var messageInfo = getError(myWorker, myQueue, myQueue.errorCodes.none, message);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"), message);
 			
 			//If the message has been dequeued too many times, just delete it straight away
 			//as it is a "poison" message
@@ -261,7 +261,7 @@ function AbstractBroker(name) {
 		
 		//TODO:Hard coded message limit for now
 		if(messages.length > 1000) {
-			broker.emit("queue-error", broker.errorCodes.queuePushMany_TooManyMessages);
+			broker.emit("queue-error", errorCodes.getError("queuePushMany_TooManyMessages"));
 			return;
 		}
 		
@@ -271,7 +271,7 @@ function AbstractBroker(name) {
 		for(i=0; i<messages.length; i++) {
 			var jobTypeCheck = messages[i].jobType.toLowerCase().trim();
 			if(jobType !== jobTypeCheck) {
-				broker.emit("queue-error", broker.errorCodes.queuePushMany_IncompatibleJobTypes);
+				broker.emit("queue-error", errorCodes.getError("queuePushMany_IncompatibleJobTypes"));
 				return;
 			}
 		}
@@ -283,7 +283,7 @@ function AbstractBroker(name) {
 		
 		//jobType can only be registered for one queue
 		if(queues.length !== 1) {
-			broker.emit("queue-error", broker.errorCodes.queuePushMany_TooManyQueues);
+			broker.emit("queue-error", errorCodes.getError("queuePushMany_TooManyQueues"));
 			return;
 		}
 		

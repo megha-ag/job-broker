@@ -1,6 +1,14 @@
 var path = require("path");
 
-var JobBroker = function() {
+var JobBroker = function(debug) {
+	//We'll load the error codes from the file into this
+	var errorCodes = require(path.join(__dirname, "/errors.js")).errors;
+	
+	//Let's set debug if required
+	if(debug) {
+		errorCodes.setDebug(debug);
+	}
+	
 	this.load = function(file, callBack) {
 		//Create closure and execute it asynchronously
 		setTimeout(function() {
@@ -8,23 +16,19 @@ var JobBroker = function() {
 			var configFile = file;
 		
 			var callback = callBack;
-		
-			//We'll load the error codes from the file into this
-			var errorCodes;
+			
+			if(debug) {
+				errorCodes.debug = true;
+			}
 			
 			try
 			{
-				//Require the path module
-				var path = require('path');
 				//Require the nconf module
 				var config = require('nconf');
 				//Require the fs module to check if file exists
 				var fs = require('fs');
 				//Require the util module
 				var util = require('util');
-			
-				//In the case of an error resultObj is set to one of the errors below
-				errorCodes = require(path.join(__dirname, "/errors.js")).errors;
 
 				//Load the configuration
 				var configPath;
@@ -167,27 +171,18 @@ var JobBroker = function() {
 				checker = null;
 				
 				//Success
-				var resultObj = util._extend({}, errorCodes.none);
+				var resultObj = errorCodes.getError("none");
 				if(callback) {
 					callback(resultObj, broker);
 				}
 			}
 			catch(err) {
 				var resultObj;
-				if(!errorCodes) {
-					resultObj = { errorCode: 1999, errorMessage:"An unknown error occurred:[_]" };
-					resultObj.errorMessage = util.format(resultObj.errorMessage, err);
-					if(callback) {
-						callback(resultObj);
-					}
-				}
-				else {
-					resultObj = util._extend({}, errorCodes.brokerConfig_UnknownError);
-					resultObj.errorMessage = util.format(resultObj.errorMessage, err);
-					resultObj.configError = err;
-					if(callback) {
-						callback(resultObj);
-					}
+				resultObj = errorCodes.getError("brokerConfig_UnknownError");
+				resultObj.errorMessage = util.format(resultObj.errorMessage, err);
+				resultObj.configError = err;
+				if(callback) {
+					callback(resultObj);
 				}
 			}
 		}, 0); //settimeout

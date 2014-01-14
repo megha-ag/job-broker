@@ -6,6 +6,8 @@ var AbstractQueue = require(path.join(__dirname, "/abstractqueue.js"));
 var RedisSMQ = require("rsmq");
 //Used for "cloning" objects
 var util = require("util");
+//Load the error codes
+var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 
 exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
 	//Create an instance of the AbstractQueue
@@ -26,7 +28,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			rsmq.listQueues(function(err, resp) {
 				if(err) {
 					//If we have an error, raise it and callback
-					var queueError = util._extend({}, queue.errorCodes.queueInit_ErrorLoadingQueuesList);
+					var queueError = errorCodes.getError("queueInit_ErrorLoadingQueuesList");
 					queueError.errorMessage = util.format(queueError.errorMessage, err);
 					queueError.queueError = err;
 					queue.onError(queueError);
@@ -50,7 +52,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 						if (resp!==1) {
 							//Not what we were expecting
 							if(err) {
-								queueError = util._extend({}, queue.errorCodes.queueInit_ErrorCreatingQueue);
+								queueError = queue.getError("queueInit_ErrorCreatingQueue");
 								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 								queueError.queueError = err;
 								queue.onError(queueError);
@@ -58,7 +60,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 								return;
 							}
 							else {
-								queueError = util._extend({}, queue.errorCodes.queueInit_ErrorCreatingQueueUnexpectedResponse);
+								queueError = queue.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
 								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
 								queue.onError(queueError);
 								callback();
@@ -137,13 +139,13 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			//Set the id of the message
 			message.id = resp;
 			//Callback
-			queue.pushCallback(queue.errorCodes.none, message);
+			queue.pushCallback(errorCodes.getError("none"), message);
 			return true;
 		}
 		else
 		{
 			//Callback with the error
-			var qError = util._extend({}, queue.errorCodes.queuePush_PushError);
+			var qError = errorCodes.getError("queuePush_PushError");
 			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.pushCallback(qError, message);
@@ -272,11 +274,11 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	function deleteCallback(message, err, resp) {
 		if (resp) {
 			//No error
-			queue.deleteCallback(queue.errorCodes.none, message);
+			queue.deleteCallback(errorCodes.getError("none"), message);
 		}
 		else {
 			//Callback with error
-			var qError = util._extend({}, queue.errorCodes.queueDelete_DeleteError);
+			var qError = errorCodes.getError("queueDelete_DeleteError");
 			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.deleteCallback(qError, message);
@@ -304,11 +306,11 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	function visibilityCallback(message, err, resp) {
 		if (resp) {
 			//No error
-			queue.visibilityCallback(queue.errorCodes.none, message);
+			queue.visibilityCallback(errorCodes.getError("none"), message);
 		}
 		else {
 			//Callback with error
-			var qError = util._extend({}, queue.errorCodes.queueInvisibilityTimeout_SetError);
+			var qError = errorCodes.getError("queueInvisibilityTimeout_SetError");
 			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.visibilityCallback(qError, message);
@@ -345,7 +347,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	function messageReceived(err, resp) {
 		if(err) {
 			//Raise an error
-			var queueError = util._extend({}, queue.errorCodes.queueReceive_ErrorReceivingMessage);
+			var queueError = errorCodes.getError("queueReceive_ErrorReceivingMessage");
 			queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 			queueError.queueError = err;
 			queue.onError(queueError);

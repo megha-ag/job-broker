@@ -11,7 +11,7 @@ function AbstractWorker(name) {
 	EventEmitter.call(this);
 	
 	//Load the error codes
-	this.errorCodes = require(path.join(__dirname, "../errors.js")).errors;
+	var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 	
 	//Set the name
 	this.name = name;
@@ -38,7 +38,7 @@ function AbstractWorker(name) {
 			this.work(message);
 		}
 		catch(err) {
-			var error = util._extend({}, this.errorCodes.workerWork_UnexpectedError);
+			var error = errorCodes.getError("workerWork_UnexpectedError");
 			error.errorMessage = util.format(error.errorMessage, err);
 			error.workerError = err;
 			setTimeout(function() { worker.processCallback(error, message); }, 0);

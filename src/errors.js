@@ -1,4 +1,9 @@
-exports.errors = {
+var util = require('util');
+
+exports.errors = (function() {
+	var debug = false;
+	
+	var errors = {
 		none: { errorCode: 0, errorMessage:undefined },
 		brokerConfig_CouldNotLoadJson: { errorCode: 1000, errorMessage:"Could not load JSON configuration file!" },
 		brokerConfig_ConfigFileNotFound: { errorCode: 1003, errorMessage:"The config file [%s] could not be loaded" },
@@ -33,3 +38,37 @@ exports.errors = {
 		queuePushMany_AlreadyPushing: { errorCode: 2013, errorMessage:"pushMany() already in progress for jobType[%s]. Please wait for queue-pushmany-completed event before calling pushMany() again." },
 		workerWork_UnexpectedError: { errorCode: 3001, errorMessage:"Unexpected error occurred while calling worker.work - %s" }
 	};
+	
+	var errorService = {};
+	
+	//Gets an error object based on its name
+	errorService.getError = function(errName) {
+		if(errors[errName]) {
+			//We don't want anyone messing around with the error object
+			//as this is a singleton due to require caching
+			var toRet = util._extend({}, errors[errName]);
+			//There is no need to pass this big object around
+			//all the time
+			if(debug) {
+				//We don't want anyone messing around with our errors object 
+				//as this is a singleton (due to require caching)
+				toRet.errorCodes = util._extend({}, errors);
+			}
+			
+			return toRet;
+		}
+		else {
+			throw("Undefined error name:" + errName);
+		}
+	};
+	
+	errorService.setDebug = function(val) {
+		debug = val;
+	};
+	
+	errorService.isDebug = function() {
+		return debug;
+	};
+	
+	return errorService;
+})();

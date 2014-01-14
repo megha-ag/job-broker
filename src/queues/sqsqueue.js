@@ -8,6 +8,8 @@ var AWS = require('aws-sdk');
 var util = require("util");
 //UUID Module for generating unique id for messages in pushMany
 var uuid = require('node-uuid');
+//Load the error codes
+var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 
 
 exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
@@ -50,7 +52,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 					}
 				}, function(err, data) {
 					if(err) {
-						var queueError = util._extend({}, queue.errorCodes.queueInit_ErrorCreatingQueue);
+						var queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
 						queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 						queueError.queueError = err;
 						queue.onError(queueError);
@@ -142,7 +144,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	function pushCallback(message, err, data) {
 		if(err) {
 			//Callback with the error
-			var qError = util._extend({}, queue.errorCodes.queuePush_PushError);
+			var qError = errorCodes.getError("queuePush_PushError");
 			qError.errorMessage = util.format(qError.errorMessage, err);
 			qError.queueError = err;
 			queue.pushCallback(qError, message);
@@ -152,7 +154,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			//Set the id of the message
 			message.id = data.MessageId;
 			//Callback
-			queue.pushCallback(queue.errorCodes.none, message);
+			queue.pushCallback(errorCodes.getError("none"), message);
 		}
 	}
 	
@@ -220,12 +222,12 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			for(i=0; i<pushManyResult.Successful.length; i++) {
 				if(pushManyResult.Successful[i].Id === message.id) {
 					message.id = pushManyResult.Successful[i].MessageId;
-					return queue.errorCodes.none;
+					return errorCodes.getError("none");
 				}
 			}
 			for(i=0; i<pushManyResult.Failed.length; i++) {
 				if(pushManyResult.Failed[i].Id === message.id) {
-					var qError = util._extend({}, queue.errorCodes.queuePush_PushError);
+					var qError = errorCodes.getError("queuePush_PushError");
 					qError.errorMessage = util.format(qError.errorMessage, pushManyResult.Failed[i].Message);
 					
 					//Detect a batch failure
@@ -362,7 +364,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	function visibilityCallback(message, err, resp) {
 		if(err) {
 			//Callback with error
-			var qError = util._extend({}, queue.errorCodes.queueInvisibilityTimeout_SetError);
+			var qError = errorCodes.getError("queueInvisibilityTimeout_SetError");
 			qError.errorMessage = util.format(qError.errorMessage, err);
 			qError.queueError = err;
 			queue.visibilityCallback(qError, message);
@@ -370,7 +372,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 		else {
 			//No error
-			queue.visibilityCallback(queue.errorCodes.none, message);
+			queue.visibilityCallback(errorCodes.getError("none"), message);
 		}
 	}
 	
@@ -424,12 +426,12 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			var i;
 			for(i=0; i<deleteCallbackBatch.Successful.length; i++) {
 				if(deleteCallbackBatch.Successful[i].Id === message.id) {
-					return queue.errorCodes.none;
+					return errorCodes.getError("none");
 				}
 			}
 			for(i=0; i<deleteCallbackBatch.Failed.length; i++) {
 				if(deleteCallbackBatch.Failed[i].Id === message.id) {
-					var qError = util._extend({}, queue.errorCodes.queueDelete_DeleteError);
+					var qError = errorCodes.getError("queueDelete_DeleteError");
 					qError.errorMessage = util.format(qError.errorMessage, deleteCallbackBatch.Failed[i].Message);
 					
 					//Detect a batch failed error
@@ -610,7 +612,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		function messageReceived(err, data) {
 			if(err) {
 				//Raise an error
-				var queueError = util._extend({}, queue.errorCodes.queueReceive_ErrorReceivingMessage);
+				var queueError = errorCodes.getError("queueReceive_ErrorReceivingMessage");
 				queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 				queueError.queueError = err;
 				queue.onError(queueError);

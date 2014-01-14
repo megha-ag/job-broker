@@ -9,6 +9,8 @@
 var path = require("path");
 //Load the AbstractWorker module
 var AbstractWorker = require(path.join(__dirname, "/abstractworker.js"));
+//Error codes
+var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 
 exports.worker = function() {
 	//Create instance
@@ -19,7 +21,7 @@ exports.worker = function() {
 	};
 	
 	worker.work = function(message) {
-		worker.processCallback(worker.errorCodes.none, message);
+		worker.processCallback(errorCodes.getError("none"), message);
 	};
 	
 	return worker;

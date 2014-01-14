@@ -38,7 +38,7 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 	
 	EventEmitter.call(this);
 	
-	this.errorCodes = require(path.join(__dirname, "../errors.js")).errors;
+	var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 	
 	//Make sure polling-interval is defined in settings
 	this.initPollingInterval = function() {
@@ -90,7 +90,7 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 	//another call before the queue-pushmany-completed event?
 	this.isPushManyRunning = function() {
 		if(this.pushManyInProgress) {
-			var err = util._extend({}, this.errorCodes.queuePushMany_AlreadyPushing);
+			var err = errorCodes.getError("queuePushMany_AlreadyPushing");
 			err.errorMessage = util.format(err.errorMessage, this.jobType);
 			queue.onError(err);
 			return true;
@@ -167,21 +167,21 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 	
 	//For internal use only
 	this.pushInitializationFailure = function(message) {
-		var queueError = queue.errorCodes.queuePush_FailedToInitialize;
+		var queueError = errorCodes.getError("queuePush_FailedToInitialize");
 		queue.pushCallback(queueError, message);
 		queueError = null;
 	};
 	
 	//For internal use only
 	this.deleteInitializationFailure = function(message) {
-		var queueError = queue.errorCodes.queueDelete_FailedToInitialize;
+		var queueError = errorCodes.getError("queueDelete_FailedToInitialize");
 		queue.deleteCallback(queueError, message);
 		queueError = null;
 	};
 	
 	//For internal use only
 	this.visibilityInitializationFailure = function(message) {
-		var queueError = queue.errorCodes.queueInvisibilityTimeout_FailedToInitialize;
+		var queueError = errorCodes.getError("queueInvisibilityTimeout_FailedToInitialize");
 		queue.visibilityCallback(queueError, message);
 		queueError = null;
 	};
