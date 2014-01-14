@@ -184,7 +184,7 @@ describe("Testing of the broker configuration module", function () {
 
   it("checks for a valid configuration", function () {
 	callResult = undefined;
-	broker.load(getTestFilePath("good.json"), function(result) {
+	broker.load(getTestFilePath("good.json"), function(result, brokerObj) {
 		//Workers node not defined
 		expect(result.errorCode).toBe(result.errorCodes.none.errorCode);
 		callResult = result;

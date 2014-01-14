@@ -46,7 +46,8 @@ var JobBroker = function(debug) {
 				}
 			
 				//Load the checker module
-				var checker = require(path.join(__dirname, "/configerrorchecker.js")).checker(callBack, configPath);
+				var CheckerClass = require(path.join(__dirname, "/configerrorchecker.js")).checker;
+				var checker = new CheckerClass(callBack, configPath);
 
 				//Check for file not found error
 				if(checker.checkFileExistsError(errorCodes, fs, path)) {
@@ -59,8 +60,8 @@ var JobBroker = function(debug) {
 				}
 			
 				//The actual broker module
-				var broker = require(path.join(__dirname, "brokers/default-broker.js")).broker;
-			
+				var broker = require(path.join(__dirname, "brokers/default-broker.js")).broker();
+				
 				//Let's load the workers
 				var workerObjs = config.get("workers");
 			

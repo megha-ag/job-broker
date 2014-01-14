@@ -3,14 +3,11 @@
 		{
 			"job-type":"sendmsg",
 			"worker": {
-				"worker-module":"console-settings",
-				"worker-settings": {
-					"name":"required"
-				}
+				"worker-module":"noworker"
 			},
 			"queue" : {
 				"queue-module":"redisqueue",
-				"queue-name":"pushmany",
+				"queue-name":"testpushmany",
 				"queue-settings": {
 					"host":"127.0.0.1",
 					"port":"6379",
