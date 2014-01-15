@@ -23,12 +23,12 @@ function resultCheck() {
 
 describe("Testing of broker (larger granularity)", function () {
 
-  it("tests pushMany functionality producing and consuming 15 messages", function () {
+  it("tests pushMany (AWS) functionality producing and consuming 5 messages", function () {
 	callResult = undefined;
 	var messagesConsumed = 0;
-	var messagesToProduce = 15;
+	var messagesToProduce = 5;
 
-	broker.load(getTestFilePath("good.json"), function(result, brokerObj) {
+	broker.load(getTestFilePath("good-aws.json"), function(result, brokerObj) {
 		//Should be no error
 		expect(result.errorCode).toBe(result.errorCodes.none.errorCode);
 		
@@ -85,7 +85,8 @@ describe("Testing of broker (larger granularity)", function () {
 			brokerObj.removeListener("broker-started", brokerStartedFunction);
 			brokerObj.removeListener("queue-ready", queueReadyFunction);
 			brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
-			//We don't need the broker instance any more
+			//We don't need the broker stuff any more
+			brokerObj = null;
 			broker = null;
 			callResult = true;
 		}

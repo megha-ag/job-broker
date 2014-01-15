@@ -103,25 +103,44 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 		queue.batchSize = batchSize;
 		
-		if(!queue.settings["aws-config-file"]) {
-			queue.throwError("This module's settings, aws-config-file must be specified");
-		}
-		
 		try
 		{
-			var awsFile = queue.settings["aws-config-file"];
-			if(awsFile && awsFile.length && (
-					//Mac/Linux etc
-					awsFile.charAt(0) === '/' ||
-					//Windows
-					(awsFile.length>2 && awsFile.charAt(1) === ':')
-				)) {
-				//Absolute path
-				AWS.config.loadFromPath(awsFile);
+			//If specified in environment, this will always override any file specified
+			if(process.env.AWS_CONFIG) {
+				//We load it from environment
+				var awsConfigCommaDelimited = process.env.AWS_CONFIG;
+				var parts = awsConfigCommaDelimited.split(",");
+				if(parts.length < 3) {
+					queue.throwError("AWS_CONFIG environment variable must be (comma-delimited) of the form: accessKeyId,secretAccessKey,region");
+				}
+				var awsConfigJson = {};
+				awsConfigJson.accessKeyId = parts[0];
+				awsConfigJson.secretAccessKey = parts[1];
+				awsConfigJson.region = parts[2];
+				var config = new AWS.Config(awsConfigJson);
+				AWS.config = config;
 			}
 			else {
-				//Path relative to module installation
-				AWS.config.loadFromPath(path.join(__dirname,  '../../../../' + awsFile));
+				//It must be specified in a file
+				if(!queue.settings["aws-config-file"]) {
+					queue.throwError("This module's settings, aws-config-file must be specified or AWS_CONFIG environment variable must be defined");
+				}
+				
+				//We load it from a specified file
+				var awsFile = queue.settings["aws-config-file"];
+				if(awsFile && awsFile.length && (
+						//Mac/Linux etc
+						awsFile.charAt(0) === '/' ||
+						//Windows
+						(awsFile.length>2 && awsFile.charAt(1) === ':')
+					)) {
+					//Absolute path
+					AWS.config.loadFromPath(awsFile);
+				}
+				else {
+					//Path relative to module installation
+					AWS.config.loadFromPath(path.join(__dirname,  '../../../../' + awsFile));
+				}
 			}
 			
 			sqs = new AWS.SQS();

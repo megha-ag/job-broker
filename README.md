@@ -515,7 +515,9 @@ Thus, the web app/REST API shall only produce the messages and push them to the 
 
 Unit Tests
 ----------
-The project defines some unit tests (jasmine) that can be executed via grunt (linting, tests related to configuration errors).
+The project defines some unit tests (jasmine) that can be executed via grunt (linting, tests related to configuration errors, basic tests for broker using Redis and SQS).
+
+For SQS, the tests will only work on Travis. This is because, we use an encrypted environment variable for the settings and there is no settings file for AWS in github. To run the tests locally, create a local aws.json file and add its absolute path to tests/files/badconfig/good-aws.json. When you do this, the SQS tests will run locally too.
 
 Please help improve this module by adding more unit tests.
 

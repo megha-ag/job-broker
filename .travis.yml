@@ -1,8 +1,11 @@
 language: node_js
 node_js:
-  - "0.8"
+- '0.8'
 services:
-  - redis-server
+- redis-server
 install:
-  - npm install -g grunt-cli
-  - npm install
+- npm install -g grunt-cli
+- npm install
+env:
+  global:
+    secure: a2vwl1DWIvVakc+D02PzOmtmqTxKi4IxG0XyoZYy8qzkiIta5sHX4qC+FwF3xaHWrurWs10TodWq4OZE0Lt+yRAqBM6i5d+SOal0TAd4eqTX/Ts8oCGeD0hPz/p0PdK1VanLQEb9hDb8CTkBhXQ94ridwN4G4OO/AcrscQ2vWBw=

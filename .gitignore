@@ -17,3 +17,5 @@ node_modules
 .settings
 .metadata
 .DS_Store
+
+test/files/badconfig/aws.json
