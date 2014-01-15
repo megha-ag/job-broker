@@ -54,19 +54,23 @@ describe("Testing of broker (larger granularity)", function () {
             
             messagesConsumed++;
 			if(messagesConsumed === messagesToProduce) {
-				unregister();
+				brokerObj.stop();
 			}
         }
 		
 		function workCompletedFunction() {
 			messagesConsumed++;
 			if(messagesConsumed === messagesToProduce) {
-				unregister();
+				brokerObj.stop();
 			}
 		}
 		
 		function brokerStartedFunction() {
 			brokerObj.pushMany(messages);
+		}
+		
+		function brokerStoppedFunction() {
+			unregister();
 		}
 		
 		function queueReadyFunction(worker, queue) {
@@ -80,14 +84,18 @@ describe("Testing of broker (larger granularity)", function () {
 			brokerObj.removeListener("queue-error", queueErrorFunction);
 			brokerObj.removeListener("broker-started", brokerStartedFunction);
 			brokerObj.removeListener("queue-ready", queueReadyFunction);
+			brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+			//We don't need the broker instance any more
+			broker = null;
 			callResult = true;
 		}
 		
 		//Register for the events
 		brokerObj.on("work-completed", workCompletedFunction);
 		brokerObj.on("queue-error", queueErrorFunction);
-		brokerObj.on("broker-started", brokerStartedFunction);
 		brokerObj.on("queue-ready", queueReadyFunction);
+		brokerObj.on("broker-started", brokerStartedFunction);
+		brokerObj.on("broker-stopped", brokerStoppedFunction);
 
 		brokerObj.connect();
 	});
