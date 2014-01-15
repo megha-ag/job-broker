@@ -46,33 +46,48 @@ describe("Testing of broker (larger granularity)", function () {
 			messages.push(message);
 		}
 		
-		brokerObj.on("work-completed", function() {
-			messagesConsumed++;
-			if(messagesConsumed === messagesToProduce) {
-				callResult = true;
-			}
-		});
-		
-		brokerObj.on("queue-error", function(err, msg) {
+		//The event callback functions
+		function queueErrorFunction(err, msg) {
             console.log("ERROR:");
             console.log(err);
             console.log(msg);
             
             messagesConsumed++;
 			if(messagesConsumed === messagesToProduce) {
-				callResult = true;
+				unregister();
 			}
-        });
+        }
 		
-		brokerObj.on("broker-started", function() {
+		function workCompletedFunction() {
+			messagesConsumed++;
+			if(messagesConsumed === messagesToProduce) {
+				unregister();
+			}
+		}
+		
+		function brokerStartedFunction() {
 			brokerObj.pushMany(messages);
-		});
+		}
 		
-		
-		brokerObj.on("queue-ready", function(worker, queue) {
+		function queueReadyFunction(worker, queue) {
             //Tell the queue to start listening for messages
             queue.start();
-        });
+        }
+		
+		//The unregister function
+		function unregister() {
+			brokerObj.removeListener("work-completed", workCompletedFunction);
+			brokerObj.removeListener("queue-error", queueErrorFunction);
+			brokerObj.removeListener("broker-started", brokerStartedFunction);
+			brokerObj.removeListener("queue-ready", queueReadyFunction);
+			callResult = true;
+		}
+		
+		//Register for the events
+		brokerObj.on("work-completed", workCompletedFunction);
+		brokerObj.on("queue-error", queueErrorFunction);
+		brokerObj.on("broker-started", brokerStartedFunction);
+		brokerObj.on("queue-ready", queueReadyFunction);
 
 		brokerObj.connect();
 	});
