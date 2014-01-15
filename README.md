@@ -6,7 +6,7 @@ A nodejs job broker module that allows [AMQP](http://www.rabbitmq.com/tutorials/
 
 ```
 This branch corresponds to version:
-v0.0.6-pre
+v0.0.6
 ```
 
 **Note:** If the version shown above ends with -pre, then its a pre-release version, otherwise its a release version.
@@ -108,8 +108,17 @@ The sample above uses an SQS queue which defines an aws-config-file. This file c
 { 
 	"accessKeyId": "YOUR-ACCESS-KEY-ID", 
 	"secretAccessKey": "YOUR-SECRET-ACCESS-KEY-ID", 
-	"region": "us-west-2" 
+	"region": "YOUR-REGION" 
 }
+```
+
+It is also possible to configure AWS via an environment variable (comma delimited). To do this:
+```
+export AWS\_CONFIG=YOUR-ACCESS-KEY-ID,YOUR-SECRET-ACCESS-KEY-ID,YOUR-REGION
+```
+or on Windows(untested please help to verify):
+```
+SET AWS\_CONFIG=YOUR-ACCESS-KEY-ID,YOUR-SECRET-ACCESS-KEY-ID,YOUR-REGION
 ```
 
 In the configuration shown, messages with type sendtweet will be pushed to the defined Redis queue. Messages of type sendemail will be pushed to the SQS queue.
