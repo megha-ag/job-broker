@@ -75,7 +75,7 @@ describe("Testing Broker Interface -", function(){
 			brokerObj.connect();
 			
 			
-	        });
+		});
 		waitsFor(rc, 20000);
 		runs(function(){
 			expect(numProcessed).toBe(numQueueAlerts);
