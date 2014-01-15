@@ -9,6 +9,7 @@ var broker = new brokerModule.JobBroker(true);
 var flag;
 var numQueueAlerts;
 var numProcessed;
+var intime, outime;
 
 function getTestFilePath(filename) {
 	if(filename.charAt(0) === '/') {
@@ -25,7 +26,7 @@ function rc(){
 
 describe("Testing Broker Interface -", function(){
 	
-	it("verifies pushing 1 message into the queue", function(){
+	it("verifies scheduling 1 message into the queue with a delay of 1 minute ", function(){
 		
 		flag = false;
 		numQueueAlerts = 0;
@@ -40,16 +41,18 @@ describe("Testing Broker Interface -", function(){
 			function queueSucessFunction(err, msg){
 				numQueueAlerts++;
 				expect(numQueueAlerts).toBe(1);
+                                intime = Date.now();
 			}
 			
 			function workCompletedFunction(err, msg) {
 				numProcessed++;
 				expect(numProcessed).toBe(1);
-				brokerObj.stop();
+                                outime = Date.now();
+                                brokerObj.stop();
 			}
 						
 			function brokerInitializedFunction(){
-				brokerObj.push(message);
+				brokerObj.schedule(message, 60);
 			}
 			
 			function queueReadyFunction(worker, queue) {
@@ -57,7 +60,7 @@ describe("Testing Broker Interface -", function(){
 			}
 			
 			function brokerStoppedFunction(){
-				unregister();
+                                unregister();
 				
 			}
 			brokerObj.on("queue-success", queueSucessFunction);
@@ -73,6 +76,7 @@ describe("Testing Broker Interface -", function(){
 			brokerObj.connect();
 			
 			function unregister() {
+                                
 				brokerObj.removeListener("work-completed", workCompletedFunction);
 				brokerObj.removeListener("queue-success", queueSucessFunction);
 				brokerObj.removeListener("broker-initialized", brokerInitializedFunction);
@@ -81,21 +85,19 @@ describe("Testing Broker Interface -", function(){
 				
 				broker = null;
 				flag = true;
+                                
 				
 			}
 			
 			
 		});
-		waitsFor(rc, 20000);
+		waitsFor(rc, 70000);
 		runs(function(){
 			expect(numProcessed).toBe(numQueueAlerts);
-			//console.log("numQueueAlerts: " + numQueueAlerts);
-			//console.log("numProc: " + numProcessed);
+			var diff = new Date(outime -intime);
+                        expect(diff.getMinutes()).toBe(1);
 		});
 	});
 		
 });
-
-
-
 
