@@ -37,42 +37,52 @@ describe("Testing Broker Interface -", function(){
 			message.payload = {};
 			message.payload.id = 1;
 			
-			
-			
-			brokerObj.on("queue-success", function(err, msg) {
-				
+			function queueSucessFunction(err, msg){
 				numQueueAlerts++;
 				expect(numQueueAlerts).toBe(1);
-				//console.log("numQueueAlerts: " + numQueueAlerts);
-				//console.log("numProc: " + numProcessed);
-				
-				
-			});
+			}
 			
-			brokerObj.on("work-completed", function(err, message) {
+			function workCompletedFunction(err, msg) {
 				numProcessed++;
 				expect(numProcessed).toBe(1);
-				//console.log("numQueueAlerts: " + numQueueAlerts);
-				//console.log("numProc: " + numProcessed);
-				if (numProcessed === 1) {
-					flag = true;
-				}
-				
-				
-			
-			});
-			
-			brokerObj.on("broker-initialized", function(){
-				
+				brokerObj.stop();
+			}
+						
+			function brokerInitializedFunction(){
 				brokerObj.push(message);
-				
-			});
+			}
 			
-			brokerObj.on("queue-ready", function(worker, queue) {
+			function queueReadyFunction(worker, queue) {
 				queue.start();
-			});
+			}
+			
+			function brokerStoppedFunction(){
+				unregister();
+				
+			}
+			brokerObj.on("queue-success", queueSucessFunction);
+			
+			brokerObj.on("work-completed", workCompletedFunction);
+			
+			brokerObj.on("broker-initialized", brokerInitializedFunction);
+			
+			brokerObj.on("queue-ready", queueReadyFunction);
+			
+			brokerObj.on("broker-stopped", brokerStoppedFunction);
 			
 			brokerObj.connect();
+			
+			function unregister() {
+				brokerObj.removeListener("work-completed", workCompletedFunction);
+				brokerObj.removeListener("queue-success", queueSucessFunction);
+				brokerObj.removeListener("broker-initialized", brokerInitializedFunction);
+				brokerObj.removeListener("queue-ready", queueReadyFunction);
+				brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+				
+				broker = null;
+				flag = true;
+				
+			}
 			
 			
 		});
