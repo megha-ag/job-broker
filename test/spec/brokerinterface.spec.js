@@ -48,7 +48,7 @@ describe("Testing Broker Interface -", function(){
 				brokerObj.stop();
 			}
 						
-			function brokerInitializedFunction(){
+			function brokerStartedFunction(){
 				brokerObj.push(message);
 			}
 			
@@ -58,16 +58,12 @@ describe("Testing Broker Interface -", function(){
 			
 			function brokerStoppedFunction(){
 				unregister();
-				
 			}
+			
 			brokerObj.on("queue-success", queueSucessFunction);
-			
 			brokerObj.on("work-completed", workCompletedFunction);
-			
-			brokerObj.on("broker-initialized", brokerInitializedFunction);
-			
+			brokerObj.on("broker-started", brokerStartedFunction);
 			brokerObj.on("queue-ready", queueReadyFunction);
-			
 			brokerObj.on("broker-stopped", brokerStoppedFunction);
 			
 			brokerObj.connect();
@@ -75,16 +71,13 @@ describe("Testing Broker Interface -", function(){
 			function unregister() {
 				brokerObj.removeListener("work-completed", workCompletedFunction);
 				brokerObj.removeListener("queue-success", queueSucessFunction);
-				brokerObj.removeListener("broker-initialized", brokerInitializedFunction);
+				brokerObj.removeListener("broker-started", brokerStartedFunction);
 				brokerObj.removeListener("queue-ready", queueReadyFunction);
 				brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
 				
 				broker = null;
 				flag = true;
-				
 			}
-			
-			
 		});
 		waitsFor(rc, 20000);
 		runs(function(){

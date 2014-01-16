@@ -18,7 +18,6 @@ function getTestFilePath(filename) {
 	return path.join(__dirname, "../files/badconfig/" + filename);
 }
 
-
 function rc(){
 	return flag;
 }
@@ -41,61 +40,59 @@ describe("Testing Broker Interface -", function(){
 			function queueSucessFunction(err, msg){
 				numQueueAlerts++;
 				expect(numQueueAlerts).toBe(1);
-                                intime = Date.now();
+                intime = Date.now();
 			}
 			
 			function workCompletedFunction(err, msg) {
 				numProcessed++;
 				expect(numProcessed).toBe(1);
-                                outime = Date.now();
-                                brokerObj.stop();
+                outime = Date.now();
+                brokerObj.stop();
 			}
 						
-			function brokerInitializedFunction(){
-				brokerObj.schedule(message, 60);
-			}
-			
 			function queueReadyFunction(worker, queue) {
 				queue.start();
 			}
 			
 			function brokerStoppedFunction(){
-                                unregister();
+                unregister();
 				
 			}
+			
+			function brokerStartedFunction() {
+				brokerObj.schedule(message, 60);
+			}
+			
+			
 			brokerObj.on("queue-success", queueSucessFunction);
-			
 			brokerObj.on("work-completed", workCompletedFunction);
-			
-			brokerObj.on("broker-initialized", brokerInitializedFunction);
-			
 			brokerObj.on("queue-ready", queueReadyFunction);
-			
 			brokerObj.on("broker-stopped", brokerStoppedFunction);
+			brokerObj.on("broker-started", brokerStartedFunction);
 			
 			brokerObj.connect();
 			
 			function unregister() {
-                                
-				brokerObj.removeListener("work-completed", workCompletedFunction);
 				brokerObj.removeListener("queue-success", queueSucessFunction);
-				brokerObj.removeListener("broker-initialized", brokerInitializedFunction);
+				brokerObj.removeListener("work-completed", workCompletedFunction);
 				brokerObj.removeListener("queue-ready", queueReadyFunction);
 				brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
-				
+				brokerObj.removeListener("broker-started", brokerStartedFunction);
+                
 				broker = null;
 				flag = true;
-                                
-				
 			}
 			
 			
 		});
+		//Wait for 70 secs
 		waitsFor(rc, 70000);
 		runs(function(){
 			expect(numProcessed).toBe(numQueueAlerts);
+			//The difference in date in milliseconds
 			var diff = new Date(outime -intime);
-                        expect(diff.getMinutes()).toBe(1);
+			//It should have taken more than 1 minute
+            expect(diff).toBeGreaterThan(60000);
 		});
 	});
 		
