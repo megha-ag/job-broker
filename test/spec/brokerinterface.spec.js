@@ -38,6 +38,7 @@ describe("Testing Broker Interface -", function(){
 			message.payload.id = 1;
 			
 			function queueSuccessFunction(err, msg){
+				console.log("queue-success");
 				numQueueAlerts++;
 				expect(numQueueAlerts).toBe(1);
 				if(numQueueAlerts === numProcessed) {
@@ -46,6 +47,7 @@ describe("Testing Broker Interface -", function(){
 			}
 			
 			function workCompletedFunction(err, msg) {
+				console.log("work-completed");
 				numProcessed++;
 				expect(numProcessed).toBe(1);
 				if(numQueueAlerts === numProcessed) {
@@ -54,24 +56,28 @@ describe("Testing Broker Interface -", function(){
 			}
 						
 			function brokerStartedFunction(){
+				console.log("broker-started");
 				brokerObj.push(message);
 			}
 			
 			function queueReadyFunction(worker, queue) {
+				console.log("queue-ready");
 				queue.ensureEmpty();
 			}
 			
 			function queueEmptyFunction(worker, queue) {
+				console.log("queue-empty");
 				queue.start();
 			}
 			
 			function brokerStoppedFunction(){
+				console.log("broker-stopped");
 				unregister();
 			}
 			
 			//The event callback functions
 			function queueErrorFunction(err, msg) {
-				console.log("ERROR:");
+				console.log("queue-error");
 				console.log(err);
 				console.log(msg);
 			}
