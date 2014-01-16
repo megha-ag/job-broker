@@ -457,12 +457,14 @@ exports.queue = function() {
 					queue.errorFunction(error);
 				}
 				else {
-					//Create the queue again
-					createQueue(function(created) {
-						if(created) {
-							queue.queueEmptyFunction();
-						}
-					});
+					//Create the queue again after 1 sec
+					setTimeout(function() {
+						createQueue(function(created) {
+							if(created) {
+								queue.queueEmptyFunction();
+							}
+						});
+					}, 1000);
 				}
 			});
 		}
