@@ -236,6 +236,14 @@ function AbstractBroker(name) {
 			}
 		};
 		
+		queueModule.queueEmptyFunction = function() {
+			var myWorker = workerModule;
+			var myQueue = queueModule;
+			var myBroker = broker;
+			
+			myBroker.emit("queue-empty", workerModule, queueModule);
+		};
+		
 		//Record the number of queues
 		queuesNumber++;
 	};

@@ -144,6 +144,10 @@ function AbstractQueue(name) {
 		queue.log("stop() not implemented");
 	};
 	
+	this.ensureEmpty = function() {
+		queue.log("ensureEmpty() not implemented");
+	};
+	
 	//For internal use only
 	this.onMessageReceived = function(message)
 	{
@@ -178,6 +182,13 @@ function AbstractQueue(name) {
 	//For internal use only
 	this.visibilityInitializationFailure = function(message) {
 		var queueError = errorCodes.getError("queueInvisibilityTimeout_FailedToInitialize");
+		queue.visibilityCallback(queueError, message);
+		queueError = null;
+	};
+	
+	//For internal use only
+	this.ensureEmptyInitializationFailure = function(message) {
+		var queueError = errorCodes.getError("queueEnsureEmpty_FailedToInitialize");
 		queue.visibilityCallback(queueError, message);
 		queueError = null;
 	};

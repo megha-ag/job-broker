@@ -73,9 +73,14 @@ describe("Testing of broker (larger granularity)", function () {
 			unregister();
 		}
 		
+		function queueEmptyFunction(worker, queue) {
+			//Start listening
+			queue.start();
+		}
+		
 		function queueReadyFunction(worker, queue) {
-            //Tell the queue to start listening for messages
-            queue.start();
+            //Ensure that the queue is empty
+            queue.ensureEmpty();
         }
 		
 		//The unregister function
@@ -85,6 +90,7 @@ describe("Testing of broker (larger granularity)", function () {
 			brokerObj.removeListener("broker-started", brokerStartedFunction);
 			brokerObj.removeListener("queue-ready", queueReadyFunction);
 			brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+			brokerObj.removeListener("queue-empty", queueEmptyFunction);
 			//We don't need the broker stuff any more
 			brokerObj = null;
 			broker = null;
@@ -92,6 +98,7 @@ describe("Testing of broker (larger granularity)", function () {
 		}
 		
 		//Register for the events
+		brokerObj.on("queue-empty", queueEmptyFunction);
 		brokerObj.on("work-completed", workCompletedFunction);
 		brokerObj.on("queue-error", queueErrorFunction);
 		brokerObj.on("queue-ready", queueReadyFunction);
@@ -100,7 +107,7 @@ describe("Testing of broker (larger granularity)", function () {
 
 		brokerObj.connect();
 	});
-	//Wait fr 20 secs
-	waitsFor(resultCheck, 20000);
+	//Wait for 120 secs (emptying a queue takes 1 minute)
+	waitsFor(resultCheck, 120000);
   });
 });

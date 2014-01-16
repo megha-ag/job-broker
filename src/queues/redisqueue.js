@@ -23,6 +23,39 @@ exports.queue = function() {
 	//the timers
 	var timerHandle;
 	
+	//Create a queue
+	function createQueue(callback) {
+		//Create the queue
+		rsmq.createQueue({ qname:queue.queueName, vt:queue.invisibilityTimeout }, function (err, resp) {
+			var queueError;
+			if (resp!==1) {
+				//Not what we were expecting
+				if(err) {
+					queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
+					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
+					queueError.queueError = err;
+					queue.onError(queueError);
+					callback(false);
+					return;
+				}
+				else {
+					queueError = errorCodes.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
+					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
+					queue.onError(queueError);
+					callback(false);
+					return;
+				}
+			}
+			else
+			{
+				//Queue is created
+				queue.queueInitialized = true;
+				callback(true);
+				return;
+			}
+		});
+	}
+	
 	//A function to initialize the queue, creating it if it does not exists
 	function initialize(callback) {
 		//If we haven't done initialization already
@@ -49,41 +82,13 @@ exports.queue = function() {
 				}
 				//If it isn't
 				if(!queueExists) {
-					//Create the queue
-					rsmq.createQueue({ qname:queue.queueName, vt:queue.invisibilityTimeout }, function (err, resp) {
-						var queueError;
-						if (resp!==1) {
-							//Not what we were expecting
-							if(err) {
-								queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
-								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
-								queueError.queueError = err;
-								queue.onError(queueError);
-								callback();
-								return;
-							}
-							else {
-								queueError = errorCodes.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
-								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
-								queue.onError(queueError);
-								callback();
-								return;
-							}
-						}
-						else
-						{
-							//Queue is created
-							queue.queueInitialized = true;
-							callback();
-							return;
-						}
-					});
+					createQueue();
 				}
 				else
 				{
 					//Queue already exists
 					queue.queueInitialized = true;
-					callback();
+					callback(true);
 					return;
 				}
 			});
@@ -437,6 +442,32 @@ exports.queue = function() {
 		}
 	};
 	
-	//return the queue onject
+	//This function is only for Unit Testing
+	queue.ensureEmpty = function() {
+		//Initialize if needed
+		if(!queue.queueInitialized) {
+			//callback with an error
+			setTimeout(function() { queue.ensureEmptyInitializationFailure(); }, 0);
+		}
+		else {
+			rsmq.deleteQueue({qname:queue.queueName}, function(err) {
+				if(err) {
+					var error = errorCodes.getError("queueEnsureEmpty_QueueDeleteError");
+					error.errorMessage = util.format(error.errorMessage, err);
+					queue.errorFunction(error);
+				}
+				else {
+					//Create the queue again
+					createQueue(function(created) {
+						if(created) {
+							queue.queueEmptyFunction();
+						}
+					});
+				}
+			});
+		}
+	};
+	
+	//return the queue object
 	return queue;
 };

@@ -58,6 +58,10 @@ describe("Testing Broker Interface -", function(){
 			}
 			
 			function queueReadyFunction(worker, queue) {
+				queue.ensureEmpty();
+			}
+			
+			function queueEmptyFunction(worker, queue) {
 				queue.start();
 			}
 			
@@ -72,6 +76,7 @@ describe("Testing Broker Interface -", function(){
 				console.log(msg);
 			}
 			
+			brokerObj.on("queue-empty", queueEmptyFunction);
 			brokerObj.on("queue-success", queueSuccessFunction);
 			brokerObj.on("work-completed", workCompletedFunction);
 			brokerObj.on("broker-started", brokerStartedFunction);
@@ -82,6 +87,7 @@ describe("Testing Broker Interface -", function(){
 			brokerObj.connect();
 			
 			function unregister() {
+				brokerObj.removeListener("queue-empty", queueEmptyFunction);
 				brokerObj.removeListener("work-completed", workCompletedFunction);
 				brokerObj.removeListener("queue-success", queueSuccessFunction);
 				brokerObj.removeListener("broker-started", brokerStartedFunction);
