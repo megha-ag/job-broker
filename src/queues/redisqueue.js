@@ -457,14 +457,13 @@ exports.queue = function() {
 					queue.errorFunction(error);
 				}
 				else {
-					//Create the queue again after 1 sec
-					setTimeout(function() {
-						createQueue(function(created) {
-							if(created) {
-								queue.queueEmptyFunction();
-							}
-						});
-					}, 1000);
+					//Try to create new RSMQ object to fix build error
+					rsmq = new RedisSMQ( {host: queue.settings.host, port: queue.settings.port, ns: queue.settings.ns} );
+					createQueue(function(created) {
+						if(created) {
+							queue.queueEmptyFunction();
+						}
+					});
 				}
 			});
 		}
