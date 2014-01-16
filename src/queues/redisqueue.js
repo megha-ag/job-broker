@@ -427,9 +427,9 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				clearTimeout(timerHandle);
 				//Unset the handle
 				timerHandle = undefined;
-				//Call the started callback
-				queue.stoppedFunction();
 			}
+			//Call the stopped callback
+			queue.stoppedFunction();
 		}
 	};
 	
