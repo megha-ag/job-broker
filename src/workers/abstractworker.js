@@ -10,6 +10,32 @@ function AbstractWorker(name) {
 	//Make this an emitter
 	EventEmitter.call(this);
 	
+	//Our broker
+	var myBroker;
+	
+	//Our queue
+	var myQueue;
+	
+	//Set broker
+	this.setBroker = function(broker) {
+		myBroker = broker;
+	};
+	
+	//Get broker
+	this.getBroker = function() {
+		return myBroker;
+	};
+	
+	//Set queue
+	this.setQueue = function(queue) {
+		myQueue = queue;
+	};
+	
+	//Get queue
+	this.getQueue = function() {
+		return myQueue;
+	};
+	
 	//Load the error codes
 	var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 	

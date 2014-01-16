@@ -107,7 +107,8 @@ describe("Testing of broker (larger granularity)", function () {
 
 		brokerObj.connect();
 	});
-	//Wait for 120 secs (emptying a queue takes 1 minute)
-	waitsFor(resultCheck, 120000);
+	//Wait for 120 secs (emptying a queue takes 80 sec - hypothesis, plus 60 secs for pushing 
+	//and consuming 5 messages, assuming worst case)
+	waitsFor(resultCheck, 140000);
   });
 });

@@ -715,14 +715,15 @@ exports.queue = function() {
 				}
 				else {
 					//Create the queue again, we must wait for 60 secs before creating the 
-					//queue with same name again
+					//queue with same name again. But sometimes 60 sec is not enough
+					//(revealed in build), thus we wait 80 secs
 					setTimeout(function () {
 						createQueue(function(created) {
 							if(created) {
 								queue.queueEmptyFunction();
 							}
 						});
-					}, 60000);
+					}, 80000);
 				}
 			});
 		}
