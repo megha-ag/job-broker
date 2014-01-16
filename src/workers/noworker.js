@@ -17,7 +17,7 @@ exports.worker = function() {
 	var worker = new AbstractWorker("noworker");
 	
 	//Initialize
-	worker.init = function(workerSettings) {
+	worker.init = function() {
 	};
 	
 	worker.work = function(message) {

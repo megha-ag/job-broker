@@ -6,16 +6,12 @@ var path = require('path');
 var EventEmitter = require('events').EventEmitter;
 
 //The class
-function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
-	this.workerNumber = workerNumber;
-	this.jobType = jobType;
-	this.queueName = queueName;
-	this.moduleName = moduleName;
-	this.settings = settings;
+function AbstractQueue(name) {
+	this.name = name;
+	
 	//Default invisibilityTimeout is 1 minute
 	this.invisibilityTimeout = 60;
 	this.pushManyInProgress = false;
-	this.name = "Worker[" + workerNumber + "], Jobtype[" + jobType + "], Queuetype[" + moduleName + "], Name[" + queueName + "]";
 	
 	//Is the queue initialized?
 	//Queue initialization makes sure that the queue is created

@@ -21,8 +21,7 @@ var JobBroker = function(debug) {
 			{
 				//Require the nconf module
 				var config = require('nconf');
-				//Require the fs module to check if file exists
-				var fs = require('fs');
+				
 				//Require the util module
 				var util = require('util');
 
@@ -50,12 +49,12 @@ var JobBroker = function(debug) {
 				var checker = new CheckerClass(callBack, configPath);
 
 				//Check for file not found error
-				if(checker.checkFileExistsError(errorCodes, fs, path)) {
+				if(checker.checkFileExistsError()) {
 					return;
 				}
 
 				//Check if we could load the JSON
-				if(checker.checkJsonLoadingError(errorCodes, config, configPath)) {
+				if(checker.checkJsonLoadingError(config, configPath)) {
 					return;
 				}
 			
@@ -66,7 +65,7 @@ var JobBroker = function(debug) {
 				var workerObjs = config.get("workers");
 			
 				//Check that there is at least one worker definition
-				if(checker.checkWorkersNode(errorCodes, workerObjs)) {
+				if(checker.checkWorkersNode(workerObjs)) {
 					return;
 				}
 			
@@ -81,7 +80,7 @@ var JobBroker = function(debug) {
 					workerConfig = workerObjs[i];
 				
 					//Check that job-type is defined
-					if(checker.checkJobType(errorCodes, workerConfig, i)) {
+					if(checker.checkJobType(workerConfig, i)) {
 						return;
 					}
 				
@@ -89,7 +88,7 @@ var JobBroker = function(debug) {
 					var jobType = workerConfig["job-type"];
 				
 					//Worker node must exist
-					if(checker.checkWorkerNode(errorCodes, workerConfig, i)) {
+					if(checker.checkWorkerNode(workerConfig, i)) {
 						return;
 					}
 				
@@ -97,7 +96,7 @@ var JobBroker = function(debug) {
 					var workerObj = workerConfig.worker;
 				
 					//worker-module must exist
-					if(checker.checkWorkerModule(errorCodes, workerObj, i)) {
+					if(checker.checkWorkerModule(workerObj, i)) {
 						return;
 					}
 				
@@ -108,7 +107,7 @@ var JobBroker = function(debug) {
 					var workerCheck = { workerModule:undefined };
 				
 					//Check if worker module can be loaded and initialized
-					if(checker.checkLoadWorkerModule(errorCodes, path, workerObj, workerModuleName, i, workerCheck)) {
+					if(checker.checkLoadWorkerModule(workerObj, i, workerCheck)) {
 						return;
 					}
 				
@@ -116,7 +115,7 @@ var JobBroker = function(debug) {
 					var workerModule = workerCheck.workerModule;
 				
 					//Queue node must exist
-					if(checker.checkQueueNode(errorCodes, workerConfig, i)) {
+					if(checker.checkQueueNode(workerConfig, i)) {
 						return;
 					}
 				
@@ -124,12 +123,12 @@ var JobBroker = function(debug) {
 					var queueObj = workerConfig.queue;
 				
 					//It must comtain a queue-module node
-					if(checker.checkQueueModule(errorCodes, queueObj, i)) {
+					if(checker.checkQueueModule(queueObj, i)) {
 						return;
 					}
 				
 					//It must also have a queue name
-					if(checker.checkQueueName(errorCodes, queueObj, i)) {
+					if(checker.checkQueueName(queueObj, i)) {
 						return;
 					}
 				
@@ -145,7 +144,7 @@ var JobBroker = function(debug) {
 					var checkerq = { queueModule: undefined };
 				
 					//Check if we can load the queue module
-					if(checker.checkLoadQueueModule(errorCodes, path, jobType, queueModuleName, queueName, queueObj, i, checkerq)) {
+					if(checker.checkLoadQueueModule(queueObj, i, checkerq)) {
 						return true;
 					}
 				
@@ -153,10 +152,13 @@ var JobBroker = function(debug) {
 				
 					//We now have the worker module and the queuemodule loaded
 					//Let's add some meta data:
-					workerModule.workerNumber = (i+1);
-					workerModule.moduleName = workerModuleName;
 					
-					if(checker.checkQueueConstraint(errorCodes, queueModuleName, queueName)) {
+					//This is the index of the (queue, worker) pair in the config file
+					workerModule.jobType = jobType;
+					queueModule.jobType = jobType;
+					
+					
+					if(checker.checkQueueConstraint(queueModuleName, queueName)) {
 						return true;
 					}
 				

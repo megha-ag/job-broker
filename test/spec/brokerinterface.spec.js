@@ -6,7 +6,6 @@ var modulePath = path.join( __dirname, "../../src/broker.js");
 var brokerModule = require(modulePath);
 var broker = new brokerModule.JobBroker(true);
 
-var flag;
 var numQueueAlerts;
 var numProcessed;
 
@@ -19,15 +18,16 @@ function getTestFilePath(filename) {
 
 
 function rc(){
-	return flag;
+	if(numQueueAlerts === 0 || numProcessed === 0) {
+		return false;
+	}
+	return numQueueAlerts === numProcessed;
 }
 
 
 describe("Testing Broker Interface -", function(){
 	
 	it("verifies pushing 1 message into the queue", function(){
-		
-		flag = false;
 		numQueueAlerts = 0;
 		numProcessed = 0;
 		broker.load(getTestFilePath("good.json"), function(result, brokerObj){
@@ -37,15 +37,20 @@ describe("Testing Broker Interface -", function(){
 			message.payload = {};
 			message.payload.id = 1;
 			
-			function queueSucessFunction(err, msg){
+			function queueSuccessFunction(err, msg){
 				numQueueAlerts++;
 				expect(numQueueAlerts).toBe(1);
+				if(numQueueAlerts === numProcessed) {
+					brokerObj.stop();
+				}
 			}
 			
 			function workCompletedFunction(err, msg) {
 				numProcessed++;
 				expect(numProcessed).toBe(1);
-				brokerObj.stop();
+				if(numQueueAlerts === numProcessed) {
+					brokerObj.stop();
+				}
 			}
 						
 			function brokerStartedFunction(){
@@ -60,23 +65,31 @@ describe("Testing Broker Interface -", function(){
 				unregister();
 			}
 			
-			brokerObj.on("queue-success", queueSucessFunction);
+			//The event callback functions
+			function queueErrorFunction(err, msg) {
+				console.log("ERROR:");
+				console.log(err);
+				console.log(msg);
+			}
+			
+			brokerObj.on("queue-success", queueSuccessFunction);
 			brokerObj.on("work-completed", workCompletedFunction);
 			brokerObj.on("broker-started", brokerStartedFunction);
 			brokerObj.on("queue-ready", queueReadyFunction);
+			brokerObj.on("queue-error", queueErrorFunction);
 			brokerObj.on("broker-stopped", brokerStoppedFunction);
 			
 			brokerObj.connect();
 			
 			function unregister() {
 				brokerObj.removeListener("work-completed", workCompletedFunction);
-				brokerObj.removeListener("queue-success", queueSucessFunction);
+				brokerObj.removeListener("queue-success", queueSuccessFunction);
 				brokerObj.removeListener("broker-started", brokerStartedFunction);
 				brokerObj.removeListener("queue-ready", queueReadyFunction);
 				brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+				brokerObj.removeListener("queue-error", queueErrorFunction);
 				
 				broker = null;
-				flag = true;
 			}
 		});
 		waitsFor(rc, 20000);

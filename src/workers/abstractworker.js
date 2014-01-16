@@ -21,13 +21,19 @@ function AbstractWorker(name) {
 	
 	//This should be monkey patched in children, but we define it here
 	//just in case a child does not define it.
-	this.init = function(settings) {
+	this.init = function() {
 		console.log("Worker["+ name + "] does not implement init()");
 	};
 	
 	//Utility method to throw a tagged error
 	this.throwError = function(msg) {
 		throw name + ":" + msg;
+	};
+	
+	this.requireSettings = function() {
+		if(!worker.settings) {
+			worker.throwError("This module requires settings to be defined");
+		}
 	};
 	
 	//Concrete workers should define a function called work(message)

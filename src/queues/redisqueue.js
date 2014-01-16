@@ -9,9 +9,12 @@ var util = require("util");
 //Load the error codes
 var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 
-exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
+exports.queue = function() {
+	//So that we can use the same object again and again
+	var receiveOptions;
+	
 	//Create an instance of the AbstractQueue
-	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);
+	var queue = new AbstractQueue("RedisQueue");
 	
 	//Variable for our rsmq instance
 	var rsmq;
@@ -95,6 +98,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	queue.init = function() {
 		//This queue needs settings
 		queue.requireSettings();
+		
+		receiveOptions = {qname:queue.queueName};
 		
 		//Load queue specific settings
 		//The redis host
@@ -334,8 +339,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 	};
 	
-	//So that we can use the same object again and again
-	var receiveOptions = {qname:queue.queueName};
+	
 	
 	//This function polls the queue at the specified interval
 	function poller() {

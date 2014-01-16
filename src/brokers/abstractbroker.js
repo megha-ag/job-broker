@@ -34,7 +34,6 @@ function AbstractBroker(name) {
 	//Utility function to return the error meta info
 	function getError(myWorker, myQueue, err) {
 		var errorInfo = {};
-		errorInfo.workerNumber = myWorker.workerNumber;
 		errorInfo.worker = myWorker;
 		errorInfo.queue = myQueue;
 		errorInfo.error = err;
@@ -54,6 +53,10 @@ function AbstractBroker(name) {
 		//Let the worker have access to its queue in case it needs
 		//to extend visibility timeout etc.
 		workerModule.queue = queueModule;
+		
+		//Provide the worker with access to the broker in case it
+		//needs to push other jobTypes 
+		workerModule.broker = broker;
 		
 		//After the worker has completed processing the message
 		workerModule.processCallback = function(werr, message) {

@@ -19,7 +19,10 @@ function getTestFilePath(filename) {
 }
 
 function rc(){
-	return flag;
+	if(numQueueAlerts === 0 || numProcessed === 0) {
+		return false;
+	}
+	return numQueueAlerts === numProcessed;
 }
 
 
@@ -41,13 +44,18 @@ describe("Testing Broker Interface -", function(){
 				numQueueAlerts++;
 				expect(numQueueAlerts).toBe(1);
                 intime = Date.now();
+                if(numQueueAlerts === numProcessed) {
+					brokerObj.stop();
+				}
 			}
 			
 			function workCompletedFunction(err, msg) {
 				numProcessed++;
 				expect(numProcessed).toBe(1);
                 outime = Date.now();
-                brokerObj.stop();
+                if(numQueueAlerts === numProcessed) {
+					brokerObj.stop();
+				}
 			}
 						
 			function queueReadyFunction(worker, queue) {
@@ -90,7 +98,7 @@ describe("Testing Broker Interface -", function(){
 		runs(function(){
 			expect(numProcessed).toBe(numQueueAlerts);
 			//The difference in date in milliseconds
-			var diff = new Date(outime -intime);
+			var diff = outime -intime;
 			//It should have taken more than 1 minute
             expect(diff).toBeGreaterThan(60000);
 		});

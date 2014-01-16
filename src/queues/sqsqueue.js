@@ -12,9 +12,9 @@ var uuid = require('node-uuid');
 var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 
 
-exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
+exports.queue = function() {
 	//Create an instance of the AbstractQueue
-	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);
+	var queue = new AbstractQueue("SQSQueue");
 	
 	//The variable for our sqs object
 	var sqs;
