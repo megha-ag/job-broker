@@ -6,16 +6,12 @@ var path = require('path');
 var EventEmitter = require('events').EventEmitter;
 
 //The class
-function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
-	this.workerNumber = workerNumber;
-	this.jobType = jobType;
-	this.queueName = queueName;
-	this.moduleName = moduleName;
-	this.settings = settings;
+function AbstractQueue(name) {
+	this.name = name;
+	
 	//Default invisibilityTimeout is 1 minute
 	this.invisibilityTimeout = 60;
 	this.pushManyInProgress = false;
-	this.name = "Worker[" + workerNumber + "], Jobtype[" + jobType + "], Queuetype[" + moduleName + "], Name[" + queueName + "]";
 	
 	//Is the queue initialized?
 	//Queue initialization makes sure that the queue is created
@@ -148,6 +144,10 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 		queue.log("stop() not implemented");
 	};
 	
+	this.ensureEmpty = function() {
+		queue.log("ensureEmpty() not implemented");
+	};
+	
 	//For internal use only
 	this.onMessageReceived = function(message)
 	{
@@ -182,6 +182,13 @@ function AbstractQueue(workerNumber, jobType, moduleName, queueName, settings) {
 	//For internal use only
 	this.visibilityInitializationFailure = function(message) {
 		var queueError = errorCodes.getError("queueInvisibilityTimeout_FailedToInitialize");
+		queue.visibilityCallback(queueError, message);
+		queueError = null;
+	};
+	
+	//For internal use only
+	this.ensureEmptyInitializationFailure = function(message) {
+		var queueError = errorCodes.getError("queueEnsureEmpty_FailedToInitialize");
 		queue.visibilityCallback(queueError, message);
 		queueError = null;
 	};

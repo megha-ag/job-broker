@@ -34,7 +34,6 @@ function AbstractBroker(name) {
 	//Utility function to return the error meta info
 	function getError(myWorker, myQueue, err) {
 		var errorInfo = {};
-		errorInfo.workerNumber = myWorker.workerNumber;
 		errorInfo.worker = myWorker;
 		errorInfo.queue = myQueue;
 		errorInfo.error = err;
@@ -53,7 +52,11 @@ function AbstractBroker(name) {
 		
 		//Let the worker have access to its queue in case it needs
 		//to extend visibility timeout etc.
-		workerModule.queue = queueModule;
+		workerModule.setQueue(queueModule);
+		
+		//Provide the worker with access to the broker in case it
+		//needs to push other jobTypes 
+		workerModule.setBroker(broker);
 		
 		//After the worker has completed processing the message
 		workerModule.processCallback = function(werr, message) {
@@ -231,6 +234,14 @@ function AbstractBroker(name) {
 			if(queuesStarted === 0) {
 				myBroker.emit("broker-stopped");
 			}
+		};
+		
+		queueModule.queueEmptyFunction = function() {
+			var myWorker = workerModule;
+			var myQueue = queueModule;
+			var myBroker = broker;
+			
+			myBroker.emit("queue-empty", workerModule, queueModule);
 		};
 		
 		//Record the number of queues

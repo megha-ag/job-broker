@@ -11,6 +11,8 @@ v0.0.7-pre
 
 **Note:** If the version shown above ends with -pre, then its a pre-release version, otherwise its a release version.
 
+**IT IS NOT RECOMMENDED THAT YOU USE THIS MODULE IN PRODUCTION UNTIL IT REACHES AT LEAST VERISON > v0.1.0 AS IT IS STILL EVOLVING**
+
 Opening Project in Eclipse
 --------------------------
 To open this project in Eclipse, you'll need [Nodeclipse and Enide](http://www.nodeclipse.org/).

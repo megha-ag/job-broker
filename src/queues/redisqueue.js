@@ -9,9 +9,12 @@ var util = require("util");
 //Load the error codes
 var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 
-exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
+exports.queue = function() {
+	//So that we can use the same object again and again
+	var receiveOptions;
+	
 	//Create an instance of the AbstractQueue
-	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);
+	var queue = new AbstractQueue("RedisQueue");
 	
 	//Variable for our rsmq instance
 	var rsmq;
@@ -19,6 +22,39 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	//If we started to listen, this is the handle to cancel
 	//the timers
 	var timerHandle;
+	
+	//Create a queue
+	function createQueue(callback) {
+		//Create the queue
+		rsmq.createQueue({ qname:queue.queueName, vt:queue.invisibilityTimeout }, function (err, resp) {
+			var queueError;
+			if (resp!==1) {
+				//Not what we were expecting
+				if(err) {
+					queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
+					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
+					queueError.queueError = err;
+					queue.onError(queueError);
+					callback(false);
+					return;
+				}
+				else {
+					queueError = errorCodes.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
+					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
+					queue.onError(queueError);
+					callback(false);
+					return;
+				}
+			}
+			else
+			{
+				//Queue is created
+				queue.queueInitialized = true;
+				callback(true);
+				return;
+			}
+		});
+	}
 	
 	//A function to initialize the queue, creating it if it does not exists
 	function initialize(callback) {
@@ -46,41 +82,13 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 				}
 				//If it isn't
 				if(!queueExists) {
-					//Create the queue
-					rsmq.createQueue({ qname:queue.queueName, vt:queue.invisibilityTimeout }, function (err, resp) {
-						var queueError;
-						if (resp!==1) {
-							//Not what we were expecting
-							if(err) {
-								queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
-								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
-								queueError.queueError = err;
-								queue.onError(queueError);
-								callback();
-								return;
-							}
-							else {
-								queueError = errorCodes.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
-								queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
-								queue.onError(queueError);
-								callback();
-								return;
-							}
-						}
-						else
-						{
-							//Queue is created
-							queue.queueInitialized = true;
-							callback();
-							return;
-						}
-					});
+					createQueue();
 				}
 				else
 				{
 					//Queue already exists
 					queue.queueInitialized = true;
-					callback();
+					callback(true);
 					return;
 				}
 			});
@@ -95,6 +103,8 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	queue.init = function() {
 		//This queue needs settings
 		queue.requireSettings();
+		
+		receiveOptions = {qname:queue.queueName};
 		
 		//Load queue specific settings
 		//The redis host
@@ -334,8 +344,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 	};
 	
-	//So that we can use the same object again and again
-	var receiveOptions = {qname:queue.queueName};
+	
 	
 	//This function polls the queue at the specified interval
 	function poller() {
@@ -433,6 +442,33 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 		}
 	};
 	
-	//return the queue onject
+	//This function is only for Unit Testing
+	queue.ensureEmpty = function() {
+		//Initialize if needed
+		if(!queue.queueInitialized) {
+			//callback with an error
+			setTimeout(function() { queue.ensureEmptyInitializationFailure(); }, 0);
+		}
+		else {
+			rsmq.deleteQueue({qname:queue.queueName}, function(err) {
+				if(err) {
+					var error = errorCodes.getError("queueEnsureEmpty_QueueDeleteError");
+					error.errorMessage = util.format(error.errorMessage, err);
+					queue.errorFunction(error);
+				}
+				else {
+					//Try to create new RSMQ object to fix build error
+					rsmq = new RedisSMQ( {host: queue.settings.host, port: queue.settings.port, ns: queue.settings.ns} );
+					createQueue(function(created) {
+						if(created) {
+							queue.queueEmptyFunction();
+						}
+					});
+				}
+			});
+		}
+	};
+	
+	//return the queue object
 	return queue;
 };

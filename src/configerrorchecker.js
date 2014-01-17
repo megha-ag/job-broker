@@ -1,4 +1,8 @@
 var util = require('util');
+var path = require('path');
+var fs = require('fs');
+var errorCodes = require(path.join(__dirname, "/errors.js")).errors;
+
 exports.checker = function(cb, cp) {
 	var callback = cb;
 	var configPath = cp;
@@ -20,7 +24,7 @@ exports.checker = function(cb, cp) {
 	}
 	
 	//Check that the config file exists
-	checker.checkFileExistsError = function(errorCodes, fs, path) {
+	checker.checkFileExistsError = function() {
 		//Check if file exists
 		try {
 			// Query the entry
@@ -45,7 +49,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//Checks if there is a JSON error while loading config
-	checker.checkJsonLoadingError = function(errorCodes, config, configPath) {
+	checker.checkJsonLoadingError = function(config, configPath) {
 		try
 		{
 			//Try parsing the JSON file
@@ -61,7 +65,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//The workers node must be defined in the config
-	checker.checkWorkersNode = function(errorCodes, workerObjs) {
+	checker.checkWorkersNode = function(workerObjs) {
 		if(!workerObjs) {
 			//The workers node is not defined
 			resultObj = errorCodes.getError("brokerConfig_WorkersNotSpecified");
@@ -80,7 +84,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//The job-type must be specified
-	checker.checkJobType = function(errorCodes, workerConfig, i) {
+	checker.checkJobType = function(workerConfig, i) {
 		if(!workerConfig["job-type"]) {
 			//The object node doesn't have any job-type
 			resultObj = errorCodes.getError("brokerConfig_JobTypeMissing");
@@ -92,7 +96,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//A worker must be defined
-	checker.checkWorkerNode = function(errorCodes, workerConfig, i) {
+	checker.checkWorkerNode = function(workerConfig, i) {
 		if(!workerConfig.worker) {
 			//The object node doesn't define a worker
 			resultObj = errorCodes.getError("brokerConfig_WorkerNodeMissing");
@@ -104,7 +108,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//A worker's module must be defined
-	checker.checkWorkerModule = function(errorCodes, workerObj, i) {
+	checker.checkWorkerModule = function(workerObj, i) {
 		if(!workerObj["worker-module"]) {
 			//The worker object node doesn't define a worker-module
 			resultObj = errorCodes.getError("brokerConfig_WorkerModuleMissing");
@@ -116,7 +120,8 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//Check that the worker module can be loaded
-	checker.checkLoadWorkerModule = function(errorCodes, path, workerObj, workerModuleName, i, checkerObj) {
+	checker.checkLoadWorkerModule = function(workerObj, i, checkerObj) {
+		var workerModuleName = workerObj["worker-module"];
 		//Path to the module
 		var workerModulePath;
 		if(workerModuleName.length > 3 && workerModuleName.substring(workerModuleName.length - 2).toLowerCase() === "js") {
@@ -142,7 +147,9 @@ exports.checker = function(cb, cp) {
 		try
 		{
 			//Try to initialize with settings from the file
-			checkerObj.workerModule.init(workerObj["worker-settings"]);
+			checkerObj.workerModule.settings = workerObj["worker-settings"];
+			checkerObj.workerModule.moduleName = workerModuleName;
+			checkerObj.workerModule.init();
 		}
 		catch(err) {
 			//The worker module could not be initialized
@@ -155,7 +162,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//Check that a queue is specified
-	checker.checkQueueNode = function(errorCodes, workerConfig, i) {
+	checker.checkQueueNode = function(workerConfig, i) {
 		if(!workerConfig.queue) {
 			//The object node doesn't define a queue
 			resultObj = errorCodes.getError("brokerConfig_QueueNodeMissing");
@@ -167,7 +174,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//Check that a queue module is specified
-	checker.checkQueueModule = function(errorCodes, queueObj, i) {
+	checker.checkQueueModule = function(queueObj, i) {
 		if(!queueObj["queue-module"]) {
 			//The queue object node doesn't define a queue-module
 			resultObj = errorCodes.getError("brokerConfig_QueueModuleMissing");
@@ -179,7 +186,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//Check that the queue name is specified
-	checker.checkQueueName = function(errorCodes, queueObj, i) {
+	checker.checkQueueName = function(queueObj, i) {
 		if(!queueObj["queue-name"]) {
 			//The queue object node doesn't define a queue-name
 			resultObj = errorCodes.getError("brokerConfig_QueueNameMissing");
@@ -203,7 +210,9 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//Check that the queue module can be loaded
-	checker.checkLoadQueueModule = function(errorCodes, path, jobType, queueModuleName, queueName, queueObj, i, chk) {
+	checker.checkLoadQueueModule = function(queueObj, i, chk) {
+		var queueModuleName = queueObj["queue-module"];
+		
 		//Path to the module
 		var queueModulePath;
 		if(queueModuleName.length > 3 && queueModuleName.substring(queueModuleName.length - 2).toLowerCase() === "js") {
@@ -216,7 +225,7 @@ exports.checker = function(cb, cp) {
 		try
 		{
 			//Try to load the module
-			chk.queueModule = require(queueModulePath).load((i+1), jobType, queueModuleName, queueName, queueObj["queue-settings"]);
+			chk.queueModule = require(queueModulePath).queue();
 		}
 		catch(err) {
 			//The queue module could not be loaded
@@ -228,6 +237,11 @@ exports.checker = function(cb, cp) {
 		
 		try
 		{
+			chk.queueModule.settings = queueObj["queue-settings"];
+			chk.queueModule.moduleName = queueModuleName;
+			chk.queueModule.configIndex = (i+1);
+			chk.queueModule.queueName = queueObj["queue-name"];
+			chk.queueModule.moduleName = queueModuleName;
 			//Try to initialize
 			chk.queueModule.init();
 		}
@@ -243,7 +257,7 @@ exports.checker = function(cb, cp) {
 	};
 	
 	//A particular queue (with module M and name N) cannot be defined twice
-	checker.checkQueueConstraint = function(errorCodes, queueModuleName, queueName) {
+	checker.checkQueueConstraint = function(queueModuleName, queueName) {
 		var qm = queueModuleName.toLowerCase();
 		var qn = queueName.toLowerCase();
 		if(queueMap[qm + "," + qn]) {

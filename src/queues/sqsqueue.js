@@ -12,9 +12,9 @@ var uuid = require('node-uuid');
 var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 
 
-exports.load = function(workerNumber, jobType, moduleName, queueName, settings) {
+exports.queue = function() {
 	//Create an instance of the AbstractQueue
-	var queue = new AbstractQueue(workerNumber, jobType, moduleName, queueName, settings);
+	var queue = new AbstractQueue("SQSQueue");
 	
 	//The variable for our sqs object
 	var sqs;
@@ -40,11 +40,9 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 	//one by one
 	var receiveService;
 	
-	//A function to initialize the queue, creating it if it does not exists
-	function initialize(callback) {
-		//If we haven't done initialization already
-		if(!queue.queueInitialized) {
-			sqs.createQueue(
+	//Function to create the queue
+	function createQueue(callback) {
+		sqs.createQueue(
 				{
 					QueueName:queue.queueName,
 					Attributes: {
@@ -56,7 +54,7 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 						queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 						queueError.queueError = err;
 						queue.onError(queueError);
-						callback();
+						callback(false);
 						return;
 					}
 					else {
@@ -65,10 +63,17 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 						queueUrl = data.QueueUrl;
 						receiveService = getReceiveService();
 						deleteService = getDeleteService();
-						callback();
+						callback(true);
 						return;
 					}
 				});
+	}
+	
+	//A function to initialize the queue, creating it if it does not exists
+	function initialize(callback) {
+		//If we haven't done initialization already
+		if(!queue.queueInitialized) {
+			createQueue(callback);
 		}
 		else {
 			//Queue is already initialized
@@ -691,6 +696,36 @@ exports.load = function(workerNumber, jobType, moduleName, queueName, settings) 
 			queue.isStarted = false;
 			//Call the stopped function
 			queue.stoppedFunction();
+		}
+	};
+	
+	//This function is only for Unit Testing
+	queue.ensureEmpty = function() {
+		//Initialize if needed
+		if(!queue.queueInitialized) {
+			//callback with an error
+			setTimeout(function() { queue.ensureEmptyInitializationFailure(); }, 0);
+		}
+		else {
+			sqs.deleteQueue({QueueUrl:queueUrl}, function(err) {
+				if(err) {
+					var error = errorCodes.getError("queueEnsureEmpty_QueueDeleteError");
+					error.errorMessage = util.format(error.errorMessage, err);
+					queue.errorFunction(error);
+				}
+				else {
+					//Create the queue again, we must wait for 60 secs before creating the 
+					//queue with same name again. But sometimes 60 sec is not enough
+					//(revealed in build), thus we wait 80 secs
+					setTimeout(function () {
+						createQueue(function(created) {
+							if(created) {
+								queue.queueEmptyFunction();
+							}
+						});
+					}, 80000);
+				}
+			});
 		}
 	};
 	

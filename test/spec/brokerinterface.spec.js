@@ -17,17 +17,20 @@ function getTestFilePath(filename) {
 	return path.join(__dirname, "../files/badconfig/" + filename);
 }
 
-
 function rc(){
+	if(numQueueAlerts === 0 || numProcessed === 0) {
+		return false;
+	}
+	return numQueueAlerts === numProcessed;
+}
+
+function rerror(){
 	return flag;
 }
 
-function brokerinterfacetests(qname, configfile){
+function brokerinterfacetests(qname, configfile, wait_time){
 	describe("Testing Broker Interface with " + qname, function(){
-	
 		it("verifies pushing 1 message into the queue", function(){
-			
-			flag = false;
 			numQueueAlerts = 0;
 			numProcessed = 0;
 			broker.load(getTestFilePath(configfile), function(result, brokerObj){
@@ -40,12 +43,17 @@ function brokerinterfacetests(qname, configfile){
 				function queueSucessFunction(err, msg){
 					numQueueAlerts++;
 					expect(numQueueAlerts).toBe(1);
+					if(numQueueAlerts === numProcessed) {
+						brokerObj.stop();
+					}
 				}
 				
 				function workCompletedFunction(err, msg) {
 					numProcessed++;
 					expect(numProcessed).toBe(1);
-					brokerObj.stop();
+					if(numQueueAlerts === numProcessed) {
+						brokerObj.stop();
+					}
 				}
 							
 				function brokerStartedFunction(){
@@ -53,11 +61,21 @@ function brokerinterfacetests(qname, configfile){
 				}
 				
 				function queueReadyFunction(worker, queue) {
-					queue.start();
+					queue.ensureEmpty();
 				}
 				
 				function brokerStoppedFunction(){
 					unregister();
+				}
+				
+				function queueEmptyFunction(worker, queue) {
+					queue.start();
+				}
+				
+				function queueErrorFunction(err, msg) {
+					console.log("ERROR:");
+					console.log(err);
+					console.log(msg);
 				}
 				
 				brokerObj.on("queue-success", queueSucessFunction);
@@ -65,6 +83,8 @@ function brokerinterfacetests(qname, configfile){
 				brokerObj.on("broker-started", brokerStartedFunction);
 				brokerObj.on("queue-ready", queueReadyFunction);
 				brokerObj.on("broker-stopped", brokerStoppedFunction);
+				brokerObj.on("queue-empty", queueEmptyFunction);
+				brokerObj.on("queue-error", queueErrorFunction);
 				
 				brokerObj.connect();
 				
@@ -74,16 +94,16 @@ function brokerinterfacetests(qname, configfile){
 					brokerObj.removeListener("broker-started", brokerStartedFunction);
 					brokerObj.removeListener("queue-ready", queueReadyFunction);
 					brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+					brokerObj.removeListener("queue-empty", queueEmptyFunction);
+					brokerObj.removeListener("queue-error", queueErrorFunction);
 					
 					brokerObj = null;
-					flag = true;
+					
 				}
 			});
-			waitsFor(rc, 20000);
+			waitsFor(rc, 20000 + wait_time);
 			runs(function(){
 				expect(numProcessed).toBe(numQueueAlerts);
-				//console.log("numQueueAlerts: " + numQueueAlerts);
-				//console.log("numProc: " + numProcessed);
 			});
 		});
 		
@@ -125,11 +145,15 @@ function brokerinterfacetests(qname, configfile){
 				}
 				
 				function queueReadyFunction(worker, queue) {
-					queue.start();
+					queue.ensureEmpty();
 				}
 				
 				function brokerStoppedFunction(){
 					unregister();
+				}
+				
+				function queueEmptyFunction(worker, queue) {
+					queue.start();
 				}
 				
 				brokerObj.on("queue-success", queueSucessFunction);
@@ -138,7 +162,8 @@ function brokerinterfacetests(qname, configfile){
 				brokerObj.on("queue-ready", queueReadyFunction);
 				brokerObj.on("broker-stopped", brokerStoppedFunction);
 				brokerObj.on("queue-error", queueErrorFunction);
-				
+				brokerObj.on("queue-empty", queueEmptyFunction);
+
 				brokerObj.connect();
 				
 				function unregister() {
@@ -148,12 +173,13 @@ function brokerinterfacetests(qname, configfile){
 					brokerObj.removeListener("queue-ready", queueReadyFunction);
 					brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
 					brokerObj.removeListener("queue-error", queueErrorFunction);
+					brokerObj.removeListener("queue-empty", queueEmptyFunction);
 					
 					brokerObj = null;
 					flag = true;
 				}
 			});
-			waitsFor(rc, 20000);
+			waitsFor(rerror, 20000 + wait_time);
 			runs(function(){
 				expect(numQueueAlerts).toBe(0);
 				expect(numProcessed).toBe(0);
@@ -162,8 +188,6 @@ function brokerinterfacetests(qname, configfile){
 		});
 		
 		it("verifies scheduling 1 message into the queue with a delay of 1 minute ", function(){
-			
-			flag = false;
 			numQueueAlerts = 0;
 			numProcessed = 0;
 			broker.load(getTestFilePath(configfile), function(result, brokerObj){
@@ -177,17 +201,28 @@ function brokerinterfacetests(qname, configfile){
 					numQueueAlerts++;
 					expect(numQueueAlerts).toBe(1);
 					intime = Date.now();
+					if(numQueueAlerts === numProcessed) {
+						brokerObj.stop();
+					}
 				}
 				
 				function workCompletedFunction(err, msg) {
 					numProcessed++;
 					expect(numProcessed).toBe(1);
 					outime = Date.now();
-					brokerObj.stop();
+					if(numQueueAlerts === numProcessed) {
+						brokerObj.stop();
+					}
+				}
+				
+				function queueErrorFunction(err, msg) {
+					console.log("ERROR:");
+					console.log(err);
+					console.log(msg);
 				}
 							
 				function queueReadyFunction(worker, queue) {
-					queue.start();
+					queue.ensureEmpty();
 				}
 				
 				function brokerStoppedFunction(){
@@ -199,12 +234,19 @@ function brokerinterfacetests(qname, configfile){
 					brokerObj.schedule(message, 60);
 				}
 				
+				function queueEmptyFunction(worker, queue) {
+					//Start listening
+					queue.start();
+				}
+				
 				
 				brokerObj.on("queue-success", queueSucessFunction);
 				brokerObj.on("work-completed", workCompletedFunction);
 				brokerObj.on("queue-ready", queueReadyFunction);
 				brokerObj.on("broker-stopped", brokerStoppedFunction);
 				brokerObj.on("broker-started", brokerStartedFunction);
+				brokerObj.on("queue-empty", queueEmptyFunction);
+				brokerObj.on("queue-error", queueErrorFunction);
 				
 				brokerObj.connect();
 				
@@ -214,29 +256,27 @@ function brokerinterfacetests(qname, configfile){
 					brokerObj.removeListener("queue-ready", queueReadyFunction);
 					brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
 					brokerObj.removeListener("broker-started", brokerStartedFunction);
-			
+					brokerObj.removeListener("queue-empty", queueEmptyFunction);
+					brokerObj.removeListener("queue-error", queueErrorFunction);
 					brokerObj = null;
-					flag = true;
+					
 				}
 				
 				
 			});
 			//Wait for 70 secs
-			waitsFor(rc, 70000);
+			waitsFor(rc, 70000 + wait_time);
 			runs(function(){
 				expect(numProcessed).toBe(numQueueAlerts);
 				//The difference in date in milliseconds
+				var diff = outime - intime;
 				//It should have taken more than 1 minute
-				expect(outime - intime).toBeGreaterThan(60000);
+				expect(diff).toBeGreaterThan(60000);
 			});
 		});
-			
 	});
 }
 
-brokerinterfacetests("SQS", "good-aws.json");
-brokerinterfacetests("Redis Q", "good.json");
-
-
-
+brokerinterfacetests("SQS", "good-aws.json", 80000);
+brokerinterfacetests("Redis Q", "good.json", 0);
 

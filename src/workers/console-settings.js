@@ -11,20 +11,16 @@ exports.worker = function() {
 	var errorCodes = require(path.join(__dirname, "../errors.js")).errors;
 	//Create instance
 	var worker = new AbstractWorker("console-settings");
-	//store worker module settings
-	var settings;
+
 	
 	//Initialize
-	worker.init = function(workerSettings) {
+	worker.init = function() {
 		//make sure settings and settings.name are defined
-		if(!workerSettings) {
-			worker.throwError("This module requires settings to be defined");
-		}
-		if(!workerSettings.name) {
+		worker.requireSettings();
+		
+		if(!worker.settings.name) {
 			worker.throwError("This module requires name to be defined");
 		}
-		
-		settings = workerSettings;
 	};
 	
 	

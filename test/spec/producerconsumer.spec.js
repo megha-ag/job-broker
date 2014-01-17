@@ -20,7 +20,7 @@ function getTestFilePath(filename) {
 function resultCheck() {
 	return callResult !== undefined;
 }
-function producerconsumer(qname, configfile){
+function producerconsumer(qname, configfile, wait_time){
 	describe("Testing of broker (larger granularity) - " + qname, function () {
 	
 		it("tests pushMany (AWS) functionality producing and consuming 5 messages with " + qname, function () {
@@ -73,7 +73,12 @@ function producerconsumer(qname, configfile){
 				}
 				
 				function queueReadyFunction(worker, queue) {
-				//Tell the queue to start listening for messages
+					//Ensure that the queue is empty
+					queue.ensureEmpty();
+				}
+				
+				function queueEmptyFunction(worker, queue) {
+					//Start listening
 					queue.start();
 				}
 				
@@ -84,6 +89,7 @@ function producerconsumer(qname, configfile){
 					brokerObj.removeListener("broker-started", brokerStartedFunction);
 					brokerObj.removeListener("queue-ready", queueReadyFunction);
 					brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+					brokerObj.removeListener("queue-empty", queueEmptyFunction);
 					//We don't need the broker stuff any more
 					brokerObj = null;
 					callResult = true;
@@ -95,15 +101,17 @@ function producerconsumer(qname, configfile){
 				brokerObj.on("queue-ready", queueReadyFunction);
 				brokerObj.on("broker-started", brokerStartedFunction);
 				brokerObj.on("broker-stopped", brokerStoppedFunction);
+				brokerObj.on("queue-empty", queueEmptyFunction);
 		
 				brokerObj.connect();
 			});
-			//Wait fr 20 secs
-			waitsFor(resultCheck, 20000);
+			//Wait for 140 secs (emptying a queue takes 80 sec - hypothesis, plus 60 secs for pushing 
+			//and consuming 5 messages, assuming worst case)
+			waitsFor(resultCheck, wait_time + 60000);
 		});
 		 
 	});
 }
 
-producerconsumer("SQS", "good-aws.json");
-producerconsumer("Redis Q", "good.json");
+producerconsumer("SQS", "good-aws.json", 80000);
+producerconsumer("Redis Q", "good.json", 0);
