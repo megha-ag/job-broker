@@ -20,95 +20,98 @@ function getTestFilePath(filename) {
 function resultCheck() {
 	return callResult !== undefined;
 }
-
-describe("Testing of broker (larger granularity)", function () {
-
-  it("tests pushMany (AWS) functionality producing and consuming 5 messages", function () {
-	callResult = undefined;
-	var messagesConsumed = 0;
-	var messagesToProduce = 5;
-
-	broker.load(getTestFilePath("good-aws.json"), function(result, brokerObj) {
-		//Should be no error
-		expect(result.errorCode).toBe(result.errorCodes.none.errorCode);
+function producerconsumer(qname, configfile, wait_time){
+	describe("Testing of broker (larger granularity) - " + qname, function () {
+	
+		it("tests pushMany (AWS) functionality producing and consuming 5 messages with " + qname, function () {
+			callResult = undefined;
+			var messagesConsumed = 0;
+			var messagesToProduce = 5;
 		
-		var messages = [];
-
-		//batch size for AWS is max 10
-		for(var i=0; i<messagesToProduce; i++) {
-			var message = {};
-			message.jobType = "sendmsg";
-			message.payload = {};
-			message.payload.from = "me@sent.ly";
-			message.payload.to = "you@gmail.com";
-			message.payload.emailId = "Message " + (i + 1);
-			message.payload.text = "Message " + (i + 1) + " intime: " + (new Date()).toTimeString().split(' ')[0];
-			messages.push(message);
-		}
+			broker.load(getTestFilePath(configfile), function(result, brokerObj) {
+				//Should be no error
+				expect(result.errorCode).toBe(result.errorCodes.none.errorCode);
+				
+				var messages = [];
 		
-		//The event callback functions
-		function queueErrorFunction(err, msg) {
-            console.log("ERROR:");
-            console.log(err);
-            console.log(msg);
-            
-            messagesConsumed++;
-			if(messagesConsumed === messagesToProduce) {
-				brokerObj.stop();
-			}
-        }
+				//batch size for AWS is max 10
+				for(var i=0; i<messagesToProduce; i++) {
+					var message = {};
+					message.jobType = "sendmsg";
+					message.payload = {};
+					message.payload.from = "me@sent.ly";
+					message.payload.to = "you@gmail.com";
+					message.payload.emailId = "Message " + (i + 1);
+					message.payload.text = "Message " + (i + 1) + " intime: " + (new Date()).toTimeString().split(' ')[0];
+					messages.push(message);
+				}
+				
+				//The event callback functions
+				function queueErrorFunction(err, msg) {
+					console.log("ERROR:");
+					console.log(err);
+					console.log(msg);
+					messagesConsumed++;
+					if(messagesConsumed === messagesToProduce) {
+						brokerObj.stop();
+					}
+				}
+				
+				function workCompletedFunction() {
+					messagesConsumed++;
+					if(messagesConsumed === messagesToProduce) {
+						brokerObj.stop();
+					}
+				}
+				
+				function brokerStartedFunction() {
+					brokerObj.pushMany(messages);
+				}
+				
+				function brokerStoppedFunction() {
+					unregister();
+				}
+				
+				function queueReadyFunction(worker, queue) {
+					//Ensure that the queue is empty
+					queue.ensureEmpty();
+				}
+				
+				function queueEmptyFunction(worker, queue) {
+					//Start listening
+					queue.start();
+				}
+				
+				//The unregister function
+				function unregister() {
+					brokerObj.removeListener("work-completed", workCompletedFunction);
+					brokerObj.removeListener("queue-error", queueErrorFunction);
+					brokerObj.removeListener("broker-started", brokerStartedFunction);
+					brokerObj.removeListener("queue-ready", queueReadyFunction);
+					brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+					brokerObj.removeListener("queue-empty", queueEmptyFunction);
+					//We don't need the broker stuff any more
+					brokerObj = null;
+					callResult = true;
+				}
+				
+				//Register for the events
+				brokerObj.on("work-completed", workCompletedFunction);
+				brokerObj.on("queue-error", queueErrorFunction);
+				brokerObj.on("queue-ready", queueReadyFunction);
+				brokerObj.on("broker-started", brokerStartedFunction);
+				brokerObj.on("broker-stopped", brokerStoppedFunction);
+				brokerObj.on("queue-empty", queueEmptyFunction);
 		
-		function workCompletedFunction() {
-			messagesConsumed++;
-			if(messagesConsumed === messagesToProduce) {
-				brokerObj.stop();
-			}
-		}
-		
-		function brokerStartedFunction() {
-			brokerObj.pushMany(messages);
-		}
-		
-		function brokerStoppedFunction() {
-			unregister();
-		}
-		
-		function queueEmptyFunction(worker, queue) {
-			//Start listening
-			queue.start();
-		}
-		
-		function queueReadyFunction(worker, queue) {
-            //Ensure that the queue is empty
-            queue.ensureEmpty();
-        }
-		
-		//The unregister function
-		function unregister() {
-			brokerObj.removeListener("work-completed", workCompletedFunction);
-			brokerObj.removeListener("queue-error", queueErrorFunction);
-			brokerObj.removeListener("broker-started", brokerStartedFunction);
-			brokerObj.removeListener("queue-ready", queueReadyFunction);
-			brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
-			brokerObj.removeListener("queue-empty", queueEmptyFunction);
-			//We don't need the broker stuff any more
-			brokerObj = null;
-			broker = null;
-			callResult = true;
-		}
-		
-		//Register for the events
-		brokerObj.on("queue-empty", queueEmptyFunction);
-		brokerObj.on("work-completed", workCompletedFunction);
-		brokerObj.on("queue-error", queueErrorFunction);
-		brokerObj.on("queue-ready", queueReadyFunction);
-		brokerObj.on("broker-started", brokerStartedFunction);
-		brokerObj.on("broker-stopped", brokerStoppedFunction);
-
-		brokerObj.connect();
+				brokerObj.connect();
+			});
+			//Wait for 140 secs (emptying a queue takes 80 sec - hypothesis, plus 60 secs for pushing 
+			//and consuming 5 messages, assuming worst case)
+			waitsFor(resultCheck, wait_time + 60000);
+		});
+		 
 	});
-	//Wait for 120 secs (emptying a queue takes 80 sec - hypothesis, plus 60 secs for pushing 
-	//and consuming 5 messages, assuming worst case)
-	waitsFor(resultCheck, 140000);
-  });
-});
+}
+
+producerconsumer("SQS", "good-aws.json", 80000);
+producerconsumer("Redis Q", "good.json", 0);
