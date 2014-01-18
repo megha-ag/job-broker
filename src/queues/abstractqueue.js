@@ -144,8 +144,8 @@ function AbstractQueue(name) {
 		queue.log("stop() not implemented");
 	};
 	
-	this.ensureEmpty = function() {
-		queue.log("ensureEmpty() not implemented");
+	this.deleteQueue = function() {
+		queue.log("deleteQueue() not implemented");
 	};
 	
 	//For internal use only

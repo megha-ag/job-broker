@@ -236,13 +236,15 @@ function AbstractBroker(name) {
 			}
 		};
 		
-		queueModule.queueEmptyFunction = function() {
+			
+		queueModule.queueDeleteFunction = function() {
 			var myWorker = workerModule;
 			var myQueue = queueModule;
 			var myBroker = broker;
 			
-			myBroker.emit("queue-empty", workerModule, queueModule);
+			myBroker.emit("queue-deleted-queue", workerModule, queueModule);
 		};
+		
 		
 		//Record the number of queues
 		queuesNumber++;
