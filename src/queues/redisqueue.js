@@ -82,7 +82,7 @@ exports.queue = function() {
 				}
 				//If it isn't
 				if(!queueExists) {
-					createQueue();
+					createQueue(callback);
 				}
 				else
 				{
