@@ -38,7 +38,7 @@ function producerconsumer(qname, configfile){
 	
 	describe("Testing of broker (larger granularity) - " + qname, function () {
 	
-		it("tests pushMany (AWS) functionality producing and consuming 5 messages with " + qname, function () {
+		it("tests pushMany functionality producing and consuming 5 messages with " + qname, function () {
 			createTempConfigFile(getTestFilePath(configfile));
 			callResult = undefined;
 			var messagesConsumed = 0;

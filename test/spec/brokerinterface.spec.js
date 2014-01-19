@@ -218,10 +218,11 @@ function brokerinterfacetests(qname, configfile){
 				message.payload = {};
 				message.payload.id = 1;
 				
+				intime = Date.now();
+				
 				function queueSucessFunction(err, msg){
 					numQueueAlerts++;
 					expect(numQueueAlerts).toBe(1);
-					intime = Date.now();
 					if(numQueueAlerts === numProcessed) {
 						err.queue.deleteQueue();
 					}
