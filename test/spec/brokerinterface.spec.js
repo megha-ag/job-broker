@@ -32,6 +32,10 @@ function createTempConfigFile(filename){
   
 }
 
+function deleteTempConfigFile() {
+	fs.unlinkSync(getTestFilePath("temp.json"));
+}
+
 function rc(){
 	if(numQueueAlerts === 0 || numProcessed === 0) {
 		return false;
@@ -53,6 +57,9 @@ function brokerinterfacetests(qname, configfile){
 			numProcessed = 0;
 			createTempConfigFile(getTestFilePath(configfile));
 			broker.load(getTestFilePath("temp.json"), function(result, brokerObj){
+				//File is loaded, we can remove it
+				deleteTempConfigFile();
+				
 				expect(result.errorCode).toBe(0);
 				var message = {};
 				message.jobType = "sendmsg";
@@ -133,6 +140,9 @@ function brokerinterfacetests(qname, configfile){
 			numProcessed = 0;
 			numProcessedError = 0;
 			broker.load(getTestFilePath("temp.json"), function(result, brokerObj){
+				//File is loaded, we can remove it
+				deleteTempConfigFile();
+				
 				expect(result.errorCode).toBe(0);
 				var messages = [];
 				for (var i = 0; i< 10; i++) {
@@ -212,6 +222,9 @@ function brokerinterfacetests(qname, configfile){
 			numQueueAlerts = 0;
 			numProcessed = 0;
 			broker.load(getTestFilePath("temp.json"), function(result, brokerObj){
+				//File is loaded, we can remove it
+				deleteTempConfigFile();
+				
 				expect(result.errorCode).toBe(0);
 				var message = {};
 				message.jobType = "sendmsg";

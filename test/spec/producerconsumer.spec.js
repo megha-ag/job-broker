@@ -31,6 +31,10 @@ function createTempConfigFile(filename){
       
 }
 
+function deleteTempConfigFile() {
+	fs.unlinkSync(getTestFilePath("temp.json"));
+}
+
 function resultCheck() {
 	return callResult !== undefined;
 }
@@ -45,6 +49,9 @@ function producerconsumer(qname, configfile){
 			var messagesToProduce = 5;
 		
 			broker.load(getTestFilePath("temp.json"), function(result, brokerObj) {
+				//File is loaded, we can remove it
+				deleteTempConfigFile();
+				
 				//Should be no error
 				expect(result.errorCode).toBe(result.errorCodes.none.errorCode);
 				
@@ -125,8 +132,6 @@ function producerconsumer(qname, configfile){
 			//and consuming 5 messages, assuming worst case)
 			waitsFor(resultCheck, 60000);
 		});
-		
-		
 	});
 	
 	

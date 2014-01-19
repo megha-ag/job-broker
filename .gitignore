@@ -19,3 +19,4 @@ node_modules
 .DS_Store
 
 test/files/badconfig/aws.json
+test/files/badconfig/temp.json
