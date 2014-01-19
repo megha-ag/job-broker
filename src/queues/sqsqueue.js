@@ -700,35 +700,13 @@ exports.queue = function() {
 	};
 	
 	//This function is only for Unit Testing
-	queue.ensureEmpty = function() {
-		//Initialize if needed
-		if(!queue.queueInitialized) {
-			//callback with an error
-			setTimeout(function() { queue.ensureEmptyInitializationFailure(); }, 0);
-		}
-		else {
-			sqs.deleteQueue({QueueUrl:queueUrl}, function(err) {
-				if(err) {
-					var error = errorCodes.getError("queueEnsureEmpty_QueueDeleteError");
-					error.errorMessage = util.format(error.errorMessage, err);
-					queue.errorFunction(error);
-				}
-				else {
-					//Create the queue again, we must wait for 60 secs before creating the 
-					//queue with same name again. But sometimes 60 sec is not enough
-					//(revealed in build), thus we wait 80 secs
-					setTimeout(function () {
-						createQueue(function(created) {
-							if(created) {
-								queue.queueEmptyFunction();
-							}
-						});
-					}, 80000);
+	queue.deleteQueue = function(){
+		sqs.deleteQueue({QueueUrl:queueUrl}, function(err) {
+				if (!err) {
+					queue.queueDeleteFunction();
 				}
 			});
-		}
 	};
-	
 	//return the queue object
 	return queue;
 };

@@ -3,6 +3,7 @@
 
 var path = require('path');
 var fs = require('fs');
+var nconf = require("nconf");
 
 var modulePath = path.join(__dirname, "../../src/broker.js");
 var brokerModule = require(modulePath);
@@ -17,18 +18,33 @@ function getTestFilePath(filename) {
 	return path.join(__dirname, "../files/badconfig/" + filename);
 }
 
+function createTempConfigFile(filename){
+    
+    var tempConfigFile = "temp.json";
+    nconf.file({file: filename});
+    var workerObjs = nconf.get("workers");
+    var workerConfig = workerObjs[0];
+    var qConfig = workerConfig.queue;
+    qConfig["queue-name"] = "q" + Date.now();
+    var data = "{ \"workers\": " + JSON.stringify(workerObjs) + " }";
+    fs.writeFileSync(getTestFilePath(tempConfigFile), data);
+      
+}
+
 function resultCheck() {
 	return callResult !== undefined;
 }
-function producerconsumer(qname, configfile, wait_time){
+function producerconsumer(qname, configfile){
+	
 	describe("Testing of broker (larger granularity) - " + qname, function () {
 	
 		it("tests pushMany (AWS) functionality producing and consuming 5 messages with " + qname, function () {
+			createTempConfigFile(getTestFilePath(configfile));
 			callResult = undefined;
 			var messagesConsumed = 0;
 			var messagesToProduce = 5;
 		
-			broker.load(getTestFilePath(configfile), function(result, brokerObj) {
+			broker.load(getTestFilePath("temp.json"), function(result, brokerObj) {
 				//Should be no error
 				expect(result.errorCode).toBe(result.errorCodes.none.errorCode);
 				
@@ -53,14 +69,14 @@ function producerconsumer(qname, configfile, wait_time){
 					console.log(msg);
 					messagesConsumed++;
 					if(messagesConsumed === messagesToProduce) {
-						brokerObj.stop();
+						err.queue.deleteQueue();
 					}
 				}
 				
-				function workCompletedFunction() {
+				function workCompletedFunction(err, msg) {
 					messagesConsumed++;
 					if(messagesConsumed === messagesToProduce) {
-						brokerObj.stop();
+						err.queue.deleteQueue();
 					}
 				}
 				
@@ -73,13 +89,12 @@ function producerconsumer(qname, configfile, wait_time){
 				}
 				
 				function queueReadyFunction(worker, queue) {
-					//Ensure that the queue is empty
-					queue.ensureEmpty();
-				}
-				
-				function queueEmptyFunction(worker, queue) {
 					//Start listening
 					queue.start();
+				}
+				
+				function queueDeletedQueueFunction(worker, queue) {
+					brokerObj.stop();
 				}
 				
 				//The unregister function
@@ -89,7 +104,7 @@ function producerconsumer(qname, configfile, wait_time){
 					brokerObj.removeListener("broker-started", brokerStartedFunction);
 					brokerObj.removeListener("queue-ready", queueReadyFunction);
 					brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
-					brokerObj.removeListener("queue-empty", queueEmptyFunction);
+					brokerObj.removeListener("queue-deleted-queue", queueDeletedQueueFunction);
 					//We don't need the broker stuff any more
 					brokerObj = null;
 					callResult = true;
@@ -101,17 +116,22 @@ function producerconsumer(qname, configfile, wait_time){
 				brokerObj.on("queue-ready", queueReadyFunction);
 				brokerObj.on("broker-started", brokerStartedFunction);
 				brokerObj.on("broker-stopped", brokerStoppedFunction);
-				brokerObj.on("queue-empty", queueEmptyFunction);
+				brokerObj.on("queue-deleted-queue", queueDeletedQueueFunction);
 		
 				brokerObj.connect();
+				
 			});
 			//Wait for 140 secs (emptying a queue takes 80 sec - hypothesis, plus 60 secs for pushing 
 			//and consuming 5 messages, assuming worst case)
-			waitsFor(resultCheck, wait_time + 60000);
+			waitsFor(resultCheck, 60000);
 		});
-		 
+		
+		
 	});
+	
+	
 }
 
-producerconsumer("SQS", "good-aws.json", 80000);
-producerconsumer("Redis Q", "good.json", 0);
+producerconsumer("SQS", "good-aws.json");
+producerconsumer("Redis Q", "good.json");
+

@@ -442,31 +442,14 @@ exports.queue = function() {
 		}
 	};
 	
+	
 	//This function is only for Unit Testing
-	queue.ensureEmpty = function() {
-		//Initialize if needed
-		if(!queue.queueInitialized) {
-			//callback with an error
-			setTimeout(function() { queue.ensureEmptyInitializationFailure(); }, 0);
-		}
-		else {
-			rsmq.deleteQueue({qname:queue.queueName}, function(err) {
-				if(err) {
-					var error = errorCodes.getError("queueEnsureEmpty_QueueDeleteError");
-					error.errorMessage = util.format(error.errorMessage, err);
-					queue.errorFunction(error);
-				}
-				else {
-					//Try to create new RSMQ object to fix build error
-					rsmq = new RedisSMQ( {host: queue.settings.host, port: queue.settings.port, ns: queue.settings.ns} );
-					createQueue(function(created) {
-						if(created) {
-							queue.queueEmptyFunction();
-						}
-					});
+	queue.deleteQueue = function(){
+		rsmq.deleteQueue({qname:queue.queueName}, function(err) {
+				if (!err) {
+					queue.queueDeleteFunction();
 				}
 			});
-		}
 	};
 	
 	//return the queue object
