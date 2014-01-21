@@ -152,18 +152,18 @@ function AbstractBroker(name) {
 			var myWorker = workerModule;
 			var myQueue = queueModule;
 			
-			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"), message);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
 			
 			//If the message has been dequeued too many times, just delete it straight away
 			//as it is a "poison" message
 			if(myQueue.maxDequeueCount && message.dequeueCount > myQueue.maxDequeueCount) {
-				myBroker.emit("queue-poison", messageInfo);
+				myBroker.emit("queue-poison", messageInfo, message);
 				myQueue.deleteMessage(message);
 				return;
 			}
 			
 			//Emit the event in case someone wants to watch
-			myBroker.emit("queue-received", messageInfo);
+			myBroker.emit("queue-received", messageInfo, message);
 			
 			//We make sure that the message has the right job type
 			if(message.jobType.toLowerCase() === myJobType) {
@@ -197,7 +197,9 @@ function AbstractBroker(name) {
 			//One more queue is ready
 			queuesReady++;
 			
-			myBroker.emit("queue-ready", workerModule, queueModule);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
+			
+			myBroker.emit("queue-ready", messageInfo);
 			
 			if(queuesReady === queuesNumber) {
 				//All queues are initialized
@@ -213,7 +215,9 @@ function AbstractBroker(name) {
 			
 			queuesStarted++;
 			
-			myBroker.emit("queue-started", workerModule, queueModule);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
+			
+			myBroker.emit("queue-started", messageInfo);
 			
 			if(queuesStarted === queuesNumber) {
 				//All queues are initialized
@@ -229,7 +233,9 @@ function AbstractBroker(name) {
 			
 			queuesStarted--;
 			
-			myBroker.emit("queue-stopped", workerModule, queueModule);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
+			
+			myBroker.emit("queue-stopped", messageInfo);
 			
 			if(queuesStarted === 0) {
 				myBroker.emit("broker-stopped");
@@ -253,7 +259,7 @@ function AbstractBroker(name) {
 				myBroker.emit("queue-error", messageInfo);
 			}
 			else {
-				myBroker.emit("queue-deleted-queue", messageInfo);
+				myBroker.emit("queue-deleted-queue");
 			}
 		};
 		

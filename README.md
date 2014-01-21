@@ -11,7 +11,7 @@ v0.0.7-pre
 
 **Note:** If the version shown above ends with -pre, then its a pre-release version, otherwise its a release version.
 
-**IT IS NOT RECOMMENDED THAT YOU USE THIS MODULE IN PRODUCTION UNTIL IT REACHES AT LEAST VERISON > v0.1.0 AS IT IS STILL EVOLVING**
+**IT IS NOT RECOMMENDED THAT YOU USE THIS MODULE IN PRODUCTION UNTIL IT REACHES AT LEAST VERISON > v0.1.5 AS IT IS STILL EVOLVING**
 
 Opening Project in Eclipse
 --------------------------
@@ -147,12 +147,13 @@ exports.worker = function() {
 	};
 	
 	//Initialize
-	worker.init = function(workerSettings) {
+	worker.init = function() {
 		//the worker-settings object (defined in config)
-		//is passed here and thus
-		//you may check for any required settings
-		//and throw an error message using
-		//worker.throwError("Your error message");
+		//is available as worker.settings.
+		//If you need some settings to be defined,
+		//You should call worker.requireSettings();
+		//You can then access a setting A, using
+		//worker.settings.A
 	};
 	
 	//A worker must call worker.processCallback(err, message);
@@ -164,7 +165,15 @@ exports.worker = function() {
 	}
 	
 	//Process the message asynchronously
-	worker.work = function(message) {	
+	worker.work = function(message) {
+		//A worker can access the queue it is working on:
+		//var queue = worker.getQueue();
+		
+		//A worker can access the broker it is associated with:
+		//var broker = worker.getBroker();
+		
+		//Errors should follow the format shown above.
+			
 		console.log("Worker[simpleworker], QueueModule[" + worker.queue.moduleName + "], QueueName[" + worker.queue.queueName + "] - Work called for message:");
 		console.log(JSON.stringify(message));
 		//You would invoke you asynchronous function here
@@ -224,6 +233,13 @@ The broker provides the following functions:
 4. `connect()` - This is the first function that should be called by a script using the broker. This call will result in a `queue-ready` event once a particular queue is ready. The worker and the queue are passed as arguments (in that order) for the `queue-ready` event. A script using the broker can then ask the queue to start listening for messages by calling `queue.start()`.
 5. `stop()` - This stops the message processing cycle for all queues.
 
+Queue Interface
+---------------
+Since the broker usually pushes messages to a queue, the queue interface is very similar to the Broker Interface. The only functions that are present in the queue and not in the Broker Interface are:
+
+1. `setInvisibilityTimeout(message, when)` - This function tells the queue that the specified message should not be made available to any other worker until `when` seconds have elapsed.
+2. `deleteQueue()` - Assuming a queue is initialised, a call to this function will delete the queue. This is useful during unit testing. This call may result in unexpected behaviour after the queue is deleted (if your code tries to push messages to a queue that has already been deleted), thus it is advised that this function should only be used for testing (or before a shutdown event of your service). No functions should be called after `deleteQueue()` has already been called.
+
 Broker Events
 -------------
 A script using the broker can register for certain events. The following is a list of events raised by the broker:
@@ -235,9 +251,10 @@ A script using the broker can register for certain events. The following is a li
 * `work-completed` - This event is raised when a consumer signals that it is done processing the message
 * `work-error` - This event is raised when a consumer signals that it failed in processing the message
 * `queue-deleted` - This event is raised after a message is deleted
+* `queue-deleted-queue` - After a call to `queue.deleteQueue()`. This event is raised when the queue is successfully deleted
 * `queue-poison` - This event is raised when a message that has been dequeued too many times is automatically deleted
 * `queue-pushmany-completed` - This event signals that the `pushMany` call has completed and the script that is using the broker can now push another batch of messages. A report on the messages that were pushed to the queue is passed through this event. The structure of the report is documented next.
-* `broker-initialized` - After a call to `broker.connect()`. This event is raised when all the queues registered with the broker initialized.
+* `broker-initialized` - After a call to `broker.connect()`. This event is raised when all the queues registered with the broker initialised.
 * `broker-started` - After a call to `broker.start()`. This event is raised when all the queues that are registered with the broker are now listening for messages.
 * `broker-stopped` - After a call to `broker.stop()`. This event is raised when all the queues that were listening for messages are no longer listening for messages.
 
@@ -246,14 +263,8 @@ Structure of a broker event notification
 ----------------------------------------
 ```javascript
 {
-	"workerNumber":1,
 	"worker":{ The worker object },
 	"queue":{ The queue object },
-	"message":{
-		"id":"2323ab322ced",
-		"jobType":"sendsms",
-		"payload":{ "somekey":"someval" }
-	}
 	"error": {
 		"errorCode":"ERRORCODE",
 		"errorCategory":"CATEGORY"
@@ -261,10 +272,25 @@ Structure of a broker event notification
 		"queueError":{ Object with a queue specific error if any, if category is "QUEUE" }
 		"workerError":{ Object with a worker specific error if any, if category is "WORKER" }
 	}
+	"report"://Only for push-many-completed
 }
 ```
 
-This does not apply to these events: `queue-ready`, `queue-started`, `queue-stopped`, `broker-initialized`, `broker-started`, and `broker-stopped`
+Example:
+--------
+```
+broker.on("queue-received", function(notification, message) {
+	//Notification contains the structure shown above
+	//Message is the message being processed (if available)
+	//The events queue-ready, queue-started, queue-deleted-queue and 
+	//queue-pushmany-completed do not pass a message and pass only
+	//The notification structure shown above. For queue-pushmany-completed
+	//An additional report parameter is passed which is documented
+	//below
+});
+
+
+This does not apply to these events: `broker-initialized`, `broker-started`, and `broker-stopped` as these events are aggregate events and do not correspond to any particular (worker, queue) pair.
 
 Structure of the report object resulting from a pushMany call
 -------------------------------------------------------------
@@ -302,179 +328,13 @@ After a pushMany call finishes, the `queue-pushmany-completed` event is raised w
 
 Sample code that listens for messages
 -------------------------------------
-```javascript
-/* jslint node: true */
-"use strict";
-var path = require("path");
-var brokerModule = require("job-broker");
-
-var numProcessed = 0;
-
-var broker = new brokerModule.JobBroker();
-
-broker.load("broker.json", function(result, brokerObj) {
-	if(result.errorCode) {
-		console.log("Oops:" + result.errorMessage);
-	}
-	else {
-		brokerObj.on("work-error", function(err, message) {
-			numProcessed++;
-			console.log("Error while processing message[" + numProcessed + "]:");
-			console.log(message);
-			console.log(err);
-		});
-		
-		brokerObj.on("work-completed", function(err, message) {
-			numProcessed++;
-			console.log("Work completed for message[" + numProcessed + "]:");
-			//console.log(message);
-			//console.log(err);
-		});
-		
-		brokerObj.on("queue-poison", function(err, message) {
-			numProcessed++;
-			console.log("Poison message will be deleted - message[" + numProcessed + "]:");
-		});
-		
-		brokerObj.on("queue-error", function(err, message) {
-			console.log("----------------- Queue Error -----------------");
-			console.log(err);
-			console.log("--------------- End Queue Error ---------------");
-		});
-		
-		brokerObj.on("queue-deleted", function(err, message) {
-			//console.log("Message deleted - message[" + message + "]:");
-		});
-		
-		brokerObj.on("queue-ready", function(worker, queue) {
-			//Tell the queue to start listening for messages
-			queue.start();
-			//Sample commented code to push a message
-			//brokerObj.push({ 
-			//	jobType: "sendemail", 
-			//	payload: { 
-			//		some:"fancy",
-			//		obj:"val"
-			//	} 
-			//});
-		});
-		
-		//Connect to queue creating the queue if necessary
-		brokerObj.connect();
-	}
-});
-
-process.on('uncaughtException', function (err) {
-  console.log('Caught exception: ' + err);
-});
-```
+Please see the file:
+`test/spec/brokerinterface.spec.js`
 
 Pushing messages in batches
 ---------------------------
-Pushing messages in batches makes sense for SQS as we want to avoid additional RTTs to SQS. The following code shows how to accomplish this. To run the code, pass in the number of messages you would like to push from the command line:
-```
-node producer.js 100
-```
-
-The code for producer.js is listed below:
-```javascript
-/* jslint node: true */
-"use strict";
-var path = require("path");
-var brokerModule = require("job-broker");
-var broker;
-
-var counter = 0;
-var messagesToProduce;
-if(process.argv && process.argv[2] && !isNaN(parseInt(process.argv[2]))) {
-	messagesToProduce = parseInt(process.argv[2]);
-}
-else {
-	messagesToProduce = 100;
-}
-
-console.log("I will produce " + messagesToProduce + " messages.");
-
-var producedSoFar = 0;
-
-function produce() {
-	var messages = [];
-	
-	//batch size for AWS is max 10
-	for(var i=0; i<10; i++) {
-		var message = {};
-		message.jobType = "sendemail";
-		message.payload = {};
-		message.payload.from = "me@sent.ly";
-		message.payload.to = "you@gmail.com";
-		message.payload.text = "";
-
-		if(producedSoFar < messagesToProduce) {
-			message.payload.text = "Message " + (producedSoFar + 1) + " intime: " + (new Date()).toTimeString().split(' ')[0];
-			messages.push(message);
-			producedSoFar++;
-		}
-		else {
-			break;
-		}
-	}
-	
-	if(messages.length > 0) {
-		broker.pushMany(messages);
-	}
-	else {
-		console.log("pushMany calls have finished!");
-	}
-}
-
-var numQueueAlerts = 0;
-
-var jobBroker = new brokerModule.JobBroker();
-
-jobBroker.load("broker.json", function(result, brokerObj) {
-	if(result.errorCode) {
-		console.log("Oops:" + result.errorMessage);
-		console.log(result);
-	}
-	else {
-		broker = brokerObj;
-		broker.on("queue-error", function(err, msg) {
-			console.log("ERROR:");
-			console.log(err);
-			console.log(msg);
-		});
-		
-		broker.on("queue-success", function(err, msg) {
-			numQueueAlerts++;
-			console.log("Queued so far:" + numQueueAlerts);
-		});
-		
-		broker.on("queue-pushmany-completed", function(report) {
-			console.log("----------- Batch completed -----------");
-			console.log("Success cases:");
-			console.log(JSON.stringify(report.successes));
-			console.log("Failure cases:");
-			console.log(JSON.stringify(report.failures));
-			console.log("----------- Batch completed -----------");
-			//Let's push more is needed
-			produce();
-		});
-		
-		
-		broker.on("broker-initialized", function() {
-			//All queues are ready, let's start producing messages
-			produce();
-		});
-		
-		//Initialize all queues
-		broker.connect();
-	}
-});
-
-process.on('uncaughtException', function (err) {
-  console.log('Caught exception: ' + err);
-});
-```
+Please see the file:
+`test/spec/producerconsumer.spec.js`
 
 Producer only configuration
 ---------------------------
@@ -531,6 +391,21 @@ The project defines some unit tests (jasmine) that can be executed via grunt (li
 For SQS, the tests will only work on Travis. This is because, we use an encrypted environment variable for the settings and there is no settings file for AWS in github. To run the tests locally, create a local aws.json file and add its absolute path to tests/files/badconfig/good-aws.json. When you do this, the SQS tests will run locally too.
 
 Please help improve this module by adding more unit tests.
+
+Release Process (from master)
+-----------------------------
+- Change the version in this README.md file (removing the rc part)
+- Change the version in package.json
+- Add any changes in the release to CHANGELOG.md
+- Commit your changes with a message PRE-RELEASE:v0.0.7
+- After build is complete (and is a success), create a new branch (from master) with release version example v0.0.7
+- Clone the version branch, example v0.0.7 to your local computer (in a separate directory)
+- In the cloned branch, add the last build log as release-build-log.txt, and remove the build status indicator from README.md
+- Commit changes to the cloned branch with the message RELEASE:v0.0.7 and push to remote v0.0.7
+- Go back to you master branch (in your original folder)
+- Change README.md and package.json to new version v0.0.8-pre (with pre tag)
+- Commit your master changes with a message START-RELEASE:v0.0.8
+- Push your changes up to master
 
 Performance
 -----------

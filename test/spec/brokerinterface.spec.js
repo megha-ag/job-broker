@@ -86,8 +86,8 @@ function brokerinterfacetests(qname, configfile){
 					brokerObj.push(message);
 				}
 				
-				function queueReadyFunction(worker, queue) {
-					queue.start();
+				function queueReadyFunction(info) {
+					info.queue.start();
 				}
 				
 				function brokerStoppedFunction(){
@@ -173,9 +173,9 @@ function brokerinterfacetests(qname, configfile){
 					brokerObj.pushMany(messages);
 				}
 				
-				function queueReadyFunction(worker, queue) {
-					q = queue;
-					queue.start();
+				function queueReadyFunction(info) {
+					q = info.queue;
+					info.queue.start();
 				}
 				
 				function brokerStoppedFunction(){
@@ -256,8 +256,8 @@ function brokerinterfacetests(qname, configfile){
 					console.log(msg);
 				}
 							
-				function queueReadyFunction(worker, queue) {
-					queue.start();
+				function queueReadyFunction(info) {
+					info.queue.start();
 				}
 				
 				function brokerStoppedFunction(){
@@ -269,7 +269,7 @@ function brokerinterfacetests(qname, configfile){
 					brokerObj.schedule(message, 60);
 				}
 				
-				function queueDeletedQueueFunction(worker, queue) {
+				function queueDeletedQueueFunction(info) {
 					brokerObj.stop();
 				}
 				

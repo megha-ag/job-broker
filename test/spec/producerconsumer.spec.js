@@ -95,9 +95,9 @@ function producerconsumer(qname, configfile){
 					unregister();
 				}
 				
-				function queueReadyFunction(worker, queue) {
+				function queueReadyFunction(info) {
 					//Start listening
-					queue.start();
+					info.queue.start();
 				}
 				
 				function queueDeletedQueueFunction(worker, queue) {
