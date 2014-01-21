@@ -161,7 +161,15 @@ exports.worker = function() {
 	function sendCallback(message) {
 		console.log("Worker[simpleworker], QueueModule[" + worker.queue.moduleName + "], QueueName[" + worker.queue.queueName + "] - Message processed:");
 		console.log(JSON.stringify(message));
-		worker.processCallback(errorCode.none, message);
+		var error = errorCode.none;
+		
+		//A custom result can also be returned via the error 
+		//It will be availbale as a property of error in the
+		//work-completed event.
+		error.someCustomObject = { Some Object 1 }
+		error.someCustomObject2 = { Some Object 2 }
+		
+		worker.processCallback(error, message);
 	}
 	
 	//Process the message asynchronously
