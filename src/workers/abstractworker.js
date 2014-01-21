@@ -70,7 +70,7 @@ function AbstractWorker(name) {
 			this.work(message);
 		}
 		catch(err) {
-			var error = errorCodes.getError("workerWork_UnexpectedError");
+			var error = errorCodes.getError("WORKER_UNEXPECTED_ERROR");
 			error.errorMessage = util.format(error.errorMessage, err);
 			error.workerError = err;
 			setTimeout(function() { worker.processCallback(error, message); }, 0);

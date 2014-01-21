@@ -50,7 +50,7 @@ exports.queue = function() {
 					}
 				}, function(err, data) {
 					if(err) {
-						var queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
+						var queueError = errorCodes.getError("QUEUE_ERROR_CREATING_QUEUE");
 						queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 						queueError.queueError = err;
 						queue.onError(queueError);
@@ -168,7 +168,7 @@ exports.queue = function() {
 	function pushCallback(message, err, data) {
 		if(err) {
 			//Callback with the error
-			var qError = errorCodes.getError("queuePush_PushError");
+			var qError = errorCodes.getError("QUEUE_PUSH_ERROR");
 			qError.errorMessage = util.format(qError.errorMessage, err);
 			qError.queueError = err;
 			queue.pushCallback(qError, message);
@@ -251,7 +251,7 @@ exports.queue = function() {
 			}
 			for(i=0; i<pushManyResult.Failed.length; i++) {
 				if(pushManyResult.Failed[i].Id === message.id) {
-					var qError = errorCodes.getError("queuePush_PushError");
+					var qError = errorCodes.getError("QUEUE_PUSH_ERROR");
 					qError.errorMessage = util.format(qError.errorMessage, pushManyResult.Failed[i].Message);
 					
 					//Detect a batch failure
@@ -388,7 +388,7 @@ exports.queue = function() {
 	function visibilityCallback(message, err, resp) {
 		if(err) {
 			//Callback with error
-			var qError = errorCodes.getError("queueInvisibilityTimeout_SetError");
+			var qError = errorCodes.getError("QUEUE_VISIBILITY_TIMEOUT_ERROR");
 			qError.errorMessage = util.format(qError.errorMessage, err);
 			qError.queueError = err;
 			queue.visibilityCallback(qError, message);
@@ -455,7 +455,7 @@ exports.queue = function() {
 			}
 			for(i=0; i<deleteCallbackBatch.Failed.length; i++) {
 				if(deleteCallbackBatch.Failed[i].Id === message.id) {
-					var qError = errorCodes.getError("queueDelete_DeleteError");
+					var qError = errorCodes.getError("QUEUE_DELETE_ERROR");
 					qError.errorMessage = util.format(qError.errorMessage, deleteCallbackBatch.Failed[i].Message);
 					
 					//Detect a batch failed error
@@ -636,7 +636,7 @@ exports.queue = function() {
 		function messageReceived(err, data) {
 			if(err) {
 				//Raise an error
-				var queueError = errorCodes.getError("queueReceive_ErrorReceivingMessage");
+				var queueError = errorCodes.getError("QUEUE_ERROR_RECEIVING_MESSAGE");
 				queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 				queueError.queueError = err;
 				queue.onError(queueError);
@@ -701,11 +701,25 @@ exports.queue = function() {
 	
 	//This function is only for Unit Testing
 	queue.deleteQueue = function(){
-		sqs.deleteQueue({QueueUrl:queueUrl}, function(err) {
+		if(!queue.queueInitialized) {
+			//callback with an error
+			setTimeout(function() { queue.queueDeleteInitializationFailure(); }, 0);
+		}
+		else {
+			sqs.deleteQueue({QueueUrl:queueUrl}, function(err) {
 				if (!err) {
-					queue.queueDeleteFunction();
+					queue.queueDeleteCallback();
+				}
+				else {
+					//Raise an error
+					var queueError = errorCodes.getError("QUEUE_QUEUE_DELETE_ERROR");
+					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
+					queueError.queueError = err;
+					queue.queueDeleteCallback(queueError);
+					queueError = null;
 				}
 			});
+		}
 	};
 	//return the queue object
 	return queue;

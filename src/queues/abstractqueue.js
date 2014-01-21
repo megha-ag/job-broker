@@ -86,7 +86,7 @@ function AbstractQueue(name) {
 	//another call before the queue-pushmany-completed event?
 	this.isPushManyRunning = function() {
 		if(this.pushManyInProgress) {
-			var err = errorCodes.getError("queuePushMany_AlreadyPushing");
+			var err = errorCodes.getError("QUEUE_BATCH_SENDING_IN_PROGRESS");
 			err.errorMessage = util.format(err.errorMessage, this.jobType);
 			queue.onError(err);
 			return true;
@@ -167,29 +167,29 @@ function AbstractQueue(name) {
 	
 	//For internal use only
 	this.pushInitializationFailure = function(message) {
-		var queueError = errorCodes.getError("queuePush_FailedToInitialize");
+		var queueError = errorCodes.getError("QUEUE_PUSH_ERROR_QUEUE_NOT_INITIALIZED");
 		queue.pushCallback(queueError, message);
 		queueError = null;
 	};
 	
 	//For internal use only
 	this.deleteInitializationFailure = function(message) {
-		var queueError = errorCodes.getError("queueDelete_FailedToInitialize");
+		var queueError = errorCodes.getError("QUEUE_DELETE_NOT_INITIALIZED");
 		queue.deleteCallback(queueError, message);
 		queueError = null;
 	};
 	
 	//For internal use only
 	this.visibilityInitializationFailure = function(message) {
-		var queueError = errorCodes.getError("queueInvisibilityTimeout_FailedToInitialize");
+		var queueError = errorCodes.getError("QUEUE_VISIBILITY_TIMEOUT_NOT_INITIALIZED");
 		queue.visibilityCallback(queueError, message);
 		queueError = null;
 	};
 	
 	//For internal use only
-	this.ensureEmptyInitializationFailure = function(message) {
-		var queueError = errorCodes.getError("queueEnsureEmpty_FailedToInitialize");
-		queue.visibilityCallback(queueError, message);
+	this.queueDeleteInitializationFailure = function() {
+		var queueError = errorCodes.getError("QUEUE_QUEUE_DELETE_NOT_INITIALIZED");
+		queue.queueDeleteCallback(queueError);
 		queueError = null;
 	};
 }

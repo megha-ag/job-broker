@@ -237,12 +237,24 @@ function AbstractBroker(name) {
 		};
 		
 			
-		queueModule.queueDeleteFunction = function() {
+		queueModule.queueDeleteCallback = function(derr) {
 			var myWorker = workerModule;
 			var myQueue = queueModule;
 			var myBroker = broker;
 			
-			myBroker.emit("queue-deleted-queue", workerModule, queueModule);
+			var messageInfo = getError(myWorker, myQueue, errorCodes.getError("none"));
+			
+			if(derr) {
+				messageInfo.error = derr;
+			}
+			
+			//If we had a delete error, then emit it
+			if(derr && derr.errorCode !== 0) {
+				myBroker.emit("queue-error", messageInfo);
+			}
+			else {
+				myBroker.emit("queue-deleted-queue", messageInfo);
+			}
 		};
 		
 		
@@ -274,7 +286,7 @@ function AbstractBroker(name) {
 		
 		//TODO:Hard coded message limit for now
 		if(messages.length > 1000) {
-			broker.emit("queue-error", errorCodes.getError("queuePushMany_TooManyMessages"));
+			broker.emit("queue-error", errorCodes.getError("QUEUE_TOO_MANY_MESSAGES"));
 			return;
 		}
 		
@@ -284,7 +296,7 @@ function AbstractBroker(name) {
 		for(i=0; i<messages.length; i++) {
 			var jobTypeCheck = messages[i].jobType.toLowerCase().trim();
 			if(jobType !== jobTypeCheck) {
-				broker.emit("queue-error", errorCodes.getError("queuePushMany_IncompatibleJobTypes"));
+				broker.emit("queue-error", errorCodes.getError("QUEUE_INCOMPATIBLE_JOB_TYPES"));
 				return;
 			}
 		}
@@ -296,7 +308,7 @@ function AbstractBroker(name) {
 		
 		//jobType can only be registered for one queue
 		if(queues.length !== 1) {
-			broker.emit("queue-error", errorCodes.getError("queuePushMany_TooManyQueues"));
+			broker.emit("queue-error", errorCodes.getError("QUEUE_TOO_MANY_QUEUES"));
 			return;
 		}
 		

@@ -31,7 +31,7 @@ exports.queue = function() {
 			if (resp!==1) {
 				//Not what we were expecting
 				if(err) {
-					queueError = errorCodes.getError("queueInit_ErrorCreatingQueue");
+					queueError = errorCodes.getError("QUEUE_ERROR_CREATING_QUEUE");
 					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 					queueError.queueError = err;
 					queue.onError(queueError);
@@ -39,7 +39,7 @@ exports.queue = function() {
 					return;
 				}
 				else {
-					queueError = errorCodes.getError("queueInit_ErrorCreatingQueueUnexpectedResponse");
+					queueError = errorCodes.getError("QUEUE_UNEXPECTED_RESPONSE_FROM_SERVER");
 					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, resp);
 					queue.onError(queueError);
 					callback(false);
@@ -64,7 +64,7 @@ exports.queue = function() {
 			rsmq.listQueues(function(err, resp) {
 				if(err) {
 					//If we have an error, raise it and callback
-					var queueError = errorCodes.getError("queueInit_ErrorLoadingQueuesList");
+					var queueError = errorCodes.getError("QUEUE_ERROR_LOADING_QUEUE_LIST");
 					queueError.errorMessage = util.format(queueError.errorMessage, err);
 					queueError.queueError = err;
 					queue.onError(queueError);
@@ -155,7 +155,7 @@ exports.queue = function() {
 		else
 		{
 			//Callback with the error
-			var qError = errorCodes.getError("queuePush_PushError");
+			var qError = errorCodes.getError("QUEUE_PUSH_ERROR");
 			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.pushCallback(qError, message);
@@ -288,7 +288,7 @@ exports.queue = function() {
 		}
 		else {
 			//Callback with error
-			var qError = errorCodes.getError("queueDelete_DeleteError");
+			var qError = errorCodes.getError("QUEUE_DELETE_ERROR");
 			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.deleteCallback(qError, message);
@@ -320,7 +320,7 @@ exports.queue = function() {
 		}
 		else {
 			//Callback with error
-			var qError = errorCodes.getError("queueInvisibilityTimeout_SetError");
+			var qError = errorCodes.getError("QUEUE_VISIBILITY_TIMEOUT_ERROR");
 			qError.errorMessage = util.format(qError.errorMessage, err + ":" + resp);
 			qError.queueError = err;
 			queue.visibilityCallback(qError, message);
@@ -356,7 +356,7 @@ exports.queue = function() {
 	function messageReceived(err, resp) {
 		if(err) {
 			//Raise an error
-			var queueError = errorCodes.getError("queueReceive_ErrorReceivingMessage");
+			var queueError = errorCodes.getError("QUEUE_ERROR_RECEIVING_MESSAGE");
 			queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
 			queueError.queueError = err;
 			queue.onError(queueError);
@@ -442,14 +442,27 @@ exports.queue = function() {
 		}
 	};
 	
-	
 	//This function is only for Unit Testing
 	queue.deleteQueue = function(){
-		rsmq.deleteQueue({qname:queue.queueName}, function(err) {
+		if(!queue.queueInitialized) {
+			//callback with an error
+			setTimeout(function() { queue.queueDeleteInitializationFailure(); }, 0);
+		}
+		else {
+			rsmq.deleteQueue({qname:queue.queueName}, function(err) {
 				if (!err) {
-					queue.queueDeleteFunction();
+					queue.queueDeleteCallback();
+				}
+				else {
+					//Raise an error
+					var queueError = errorCodes.getError("QUEUE_QUEUE_DELETE_ERROR");
+					queueError.errorMessage = util.format(queueError.errorMessage, queue.queueName, err);
+					queueError.queueError = err;
+					queue.queueDeleteCallback(queueError);
+					queueError = null;
 				}
 			});
+		}
 	};
 	
 	//return the queue object

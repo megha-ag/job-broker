@@ -177,7 +177,7 @@ var JobBroker = function(debug) {
 			}
 			catch(err) {
 				var resultObj;
-				resultObj = errorCodes.getError("brokerConfig_UnknownError");
+				resultObj = errorCodes.getError("CONFIG_UNKNOWN_ERROR");
 				resultObj.errorMessage = util.format(resultObj.errorMessage, err);
 				resultObj.configError = err;
 				if(callback) {

@@ -26,7 +26,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("empty.json"), function(result) {
 		//Could not load JSON
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_CouldNotLoadJson.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_JSON_PARSE_ERROR.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -36,7 +36,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("nonodes.json"), function(result) {
 		//Worker module undefined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_WorkersNotSpecified.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_NO_WORKERS_ARRAY.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -46,7 +46,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load("randon", function(result) {
 		//File not found
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_ConfigFileNotFound.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_FILE_NOT_FOUND.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -56,7 +56,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("zeroworkers.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_NoWorkers.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_WORKERS_ARRAY_EMPTY.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -66,7 +66,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("validbroker-jobtype-missing.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_JobTypeMissing.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_JOB_TYPE_MISSING.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -76,7 +76,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("workernodemissing.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_WorkerNodeMissing.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_NO_WORKER_NODE.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -86,7 +86,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("workernomodule.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_WorkerModuleMissing.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_WORKER_MODULE_MISSING.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -96,7 +96,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("workerbadmodulename.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_WorkerModuleCouldNotBeLoaded.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_UNABLE_TO_LOAD_WORKER_MODULE.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -106,7 +106,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("workerinitializeerror.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_WorkerModuleCouldNotBeInitialized.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_UNABLE_TO_INITIALIZE_WORKER_MODULE.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -116,7 +116,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("noqueue.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_QueueNodeMissing.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_QUEUE_NODE_MISSING.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -126,7 +126,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("noqueuemodule.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_QueueModuleMissing.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_QUEUE_MODULE_MISSING.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -136,7 +136,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("queuenoqueuename.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_QueueNameMissing.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_QUEUE_NAME_MISSING.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -146,7 +146,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("badqueuename.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_QueueNameInvalid.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_INVALID_QUEUE_NAME.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -156,7 +156,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("queuebadmodule.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_QueueModuleCouldNotBeLoaded.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_UNABLE_TO_LOAD_QUEUE_MODULE.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -166,7 +166,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("queuebadinitialization.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_QueueModuleCouldNotBeInitialized.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_UNABLE_TO_INITIALIZE_QUEUE_MODULE.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);
@@ -176,7 +176,7 @@ describe("Testing of the broker configuration module", function () {
 	callResult = undefined;
 	broker.load(getTestFilePath("dupequeues.json"), function(result) {
 		//Workers node not defined
-		expect(result.errorCode).toBe(result.errorCodes.brokerConfig_QueueDefinedTwice.errorCode);
+		expect(result.errorCode).toBe(result.errorCodes.CONFIG_QUEUE_DEFINED_TWICE.errorCode);
 		callResult = result;
 	});
 	waitsFor(resultCheck);

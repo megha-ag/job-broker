@@ -32,7 +32,7 @@ exports.checker = function(cb, cp) {
 
 			// Is it a directory?
 			if (stats.isDirectory()) {
-				resultObj = errorCodes.getError("brokerConfig_ConfigFileNotFound");
+				resultObj = errorCodes.getError("CONFIG_FILE_NOT_FOUND");
 				resultObj.errorMessage = util.format(resultObj.errorMessage, configPath);
 				makeCallback();
 				return true;
@@ -40,7 +40,7 @@ exports.checker = function(cb, cp) {
 		}
 		catch (e) {
 			//It doesn't exist
-			resultObj = errorCodes.getError("brokerConfig_ConfigFileNotFound");
+			resultObj = errorCodes.getError("CONFIG_FILE_NOT_FOUND");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, configPath);
 			makeCallback();
 			return true;
@@ -57,7 +57,7 @@ exports.checker = function(cb, cp) {
 		}
 		catch(err) {
 			//Could not parse
-			resultObj = errorCodes.getError("brokerConfig_CouldNotLoadJson");
+			resultObj = errorCodes.getError("CONFIG_JSON_PARSE_ERROR");
 			makeCallback();
 			return true;
 		}
@@ -68,14 +68,14 @@ exports.checker = function(cb, cp) {
 	checker.checkWorkersNode = function(workerObjs) {
 		if(!workerObjs) {
 			//The workers node is not defined
-			resultObj = errorCodes.getError("brokerConfig_WorkersNotSpecified");
+			resultObj = errorCodes.getError("CONFIG_NO_WORKERS_ARRAY");
 			makeCallback();
 			return true;
 		}
 		
 		if(!workerObjs.length) {
 			//The workers node doesn't have any workers
-			resultObj = errorCodes.getError("brokerConfig_NoWorkers");
+			resultObj = errorCodes.getError("CONFIG_WORKERS_ARRAY_EMPTY");
 			makeCallback();
 			return true;
 		}
@@ -87,7 +87,7 @@ exports.checker = function(cb, cp) {
 	checker.checkJobType = function(workerConfig, i) {
 		if(!workerConfig["job-type"]) {
 			//The object node doesn't have any job-type
-			resultObj = errorCodes.getError("brokerConfig_JobTypeMissing");
+			resultObj = errorCodes.getError("CONFIG_JOB_TYPE_MISSING");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
@@ -99,7 +99,7 @@ exports.checker = function(cb, cp) {
 	checker.checkWorkerNode = function(workerConfig, i) {
 		if(!workerConfig.worker) {
 			//The object node doesn't define a worker
-			resultObj = errorCodes.getError("brokerConfig_WorkerNodeMissing");
+			resultObj = errorCodes.getError("CONFIG_NO_WORKER_NODE");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
@@ -111,7 +111,7 @@ exports.checker = function(cb, cp) {
 	checker.checkWorkerModule = function(workerObj, i) {
 		if(!workerObj["worker-module"]) {
 			//The worker object node doesn't define a worker-module
-			resultObj = errorCodes.getError("brokerConfig_WorkerModuleMissing");
+			resultObj = errorCodes.getError("CONFIG_WORKER_MODULE_MISSING");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
@@ -138,7 +138,7 @@ exports.checker = function(cb, cp) {
 		}
 		catch(err) {
 			//The worker module could not be loaded
-			resultObj = errorCodes.getError("brokerConfig_WorkerModuleCouldNotBeLoaded");
+			resultObj = errorCodes.getError("CONFIG_UNABLE_TO_LOAD_WORKER_MODULE");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, workerModuleName);
 			makeCallback();
 			return true;
@@ -153,7 +153,7 @@ exports.checker = function(cb, cp) {
 		}
 		catch(err) {
 			//The worker module could not be initialized
-			resultObj = errorCodes.getError("brokerConfig_WorkerModuleCouldNotBeInitialized");
+			resultObj = errorCodes.getError("CONFIG_UNABLE_TO_INITIALIZE_WORKER_MODULE");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, workerModuleName, err);
 			makeCallback();
 			return true;
@@ -165,7 +165,7 @@ exports.checker = function(cb, cp) {
 	checker.checkQueueNode = function(workerConfig, i) {
 		if(!workerConfig.queue) {
 			//The object node doesn't define a queue
-			resultObj = errorCodes.getError("brokerConfig_QueueNodeMissing");
+			resultObj = errorCodes.getError("CONFIG_QUEUE_NODE_MISSING");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
@@ -177,7 +177,7 @@ exports.checker = function(cb, cp) {
 	checker.checkQueueModule = function(queueObj, i) {
 		if(!queueObj["queue-module"]) {
 			//The queue object node doesn't define a queue-module
-			resultObj = errorCodes.getError("brokerConfig_QueueModuleMissing");
+			resultObj = errorCodes.getError("CONFIG_QUEUE_MODULE_MISSING");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
@@ -189,7 +189,7 @@ exports.checker = function(cb, cp) {
 	checker.checkQueueName = function(queueObj, i) {
 		if(!queueObj["queue-name"]) {
 			//The queue object node doesn't define a queue-name
-			resultObj = errorCodes.getError("brokerConfig_QueueNameMissing");
+			resultObj = errorCodes.getError("CONFIG_QUEUE_NAME_MISSING");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, (i + 1));
 			makeCallback();
 			return true;
@@ -198,7 +198,7 @@ exports.checker = function(cb, cp) {
 		var patt1 = /^[a-z0-9]+$/i;
 		if(queueObj["queue-name"].length > 15 || !patt1.test(queueObj["queue-name"])) {
 			//The queuename is invalid
-			resultObj = errorCodes.getError("brokerConfig_QueueNameInvalid");
+			resultObj = errorCodes.getError("CONFIG_INVALID_QUEUE_NAME");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, queueObj["queue-name"]);
 			makeCallback();
 			patt1 = null;
@@ -229,7 +229,7 @@ exports.checker = function(cb, cp) {
 		}
 		catch(err) {
 			//The queue module could not be loaded
-			resultObj = errorCodes.getError("brokerConfig_QueueModuleCouldNotBeLoaded");
+			resultObj = errorCodes.getError("CONFIG_UNABLE_TO_LOAD_QUEUE_MODULE");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, queueModuleName);
 			makeCallback();
 			return true;
@@ -247,7 +247,7 @@ exports.checker = function(cb, cp) {
 		}
 		catch(err) {
 			//The queue module could not be initialized
-			resultObj = errorCodes.getError("brokerConfig_QueueModuleCouldNotBeInitialized");
+			resultObj = errorCodes.getError("CONFIG_UNABLE_TO_INITIALIZE_QUEUE_MODULE");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, queueModuleName, err);
 			makeCallback();
 			return true;
@@ -262,7 +262,7 @@ exports.checker = function(cb, cp) {
 		var qn = queueName.toLowerCase();
 		if(queueMap[qm + "," + qn]) {
 			//It's already defined
-			resultObj = errorCodes.getError("brokerConfig_QueueDefinedTwice");
+			resultObj = errorCodes.getError("CONFIG_QUEUE_DEFINED_TWICE");
 			resultObj.errorMessage = util.format(resultObj.errorMessage, queueModuleName, queueName);
 			makeCallback();
 			return true;
