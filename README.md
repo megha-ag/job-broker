@@ -6,7 +6,7 @@ A nodejs job broker module that allows [AMQP](http://www.rabbitmq.com/tutorials/
 
 ```
 This branch corresponds to version:
-v0.0.7-pre
+v0.0.7
 ```
 
 **Note:** If the version shown above ends with -pre, then its a pre-release version, otherwise its a release version.
@@ -402,7 +402,7 @@ Please help improve this module by adding more unit tests.
 
 Release Process (from master)
 -----------------------------
-- Change the version in this README.md file (removing the rc part)
+- Change the version in this README.md file (removing the -pre part)
 - Change the version in package.json
 - Add any changes in the release to CHANGELOG.md
 - Commit your changes with a message PRE-RELEASE:v0.0.7
