@@ -288,7 +288,7 @@ broker.on("queue-received", function(notification, message) {
 	//An additional report parameter is passed which is documented
 	//below
 });
-
+```
 
 This does not apply to these events: `broker-initialized`, `broker-started`, and `broker-stopped` as these events are aggregate events and do not correspond to any particular (worker, queue) pair.
 
