@@ -306,6 +306,97 @@ function brokerinterfacetests(qname, configfile){
 			});
 		});
 		
+		it("checks for error when pushing message with invalid jobtype or no jobtype using push", function(){
+			createTempConfigFile(getTestFilePath(configfile));
+			var q;
+			flag = false;
+			numQueueAlerts = 0;
+			numProcessed = 0;
+			numProcessedError = 0;
+			broker.load(getTestFilePath("temp.json"), function(result, brokerObj){
+				//File is loaded, we can remove it
+				deleteTempConfigFile();
+				
+				expect(result.errorCode).toBe(0);
+				
+				var message1 = {};
+				message1.jobType = "jobType1";
+				message1.payload = {};
+				message1.payload.id = 1;
+				message1.payload.text = "message 1";
+				
+				var message2 = {};
+				message2.payload = {};
+				message2.payload.id = 2;
+				message2.payload.text = "message 2";
+				
+				
+				function queueSucessFunction(err, msg){
+					numQueueAlerts++;
+				}
+				
+				function queueErrorFunction(err, msg){
+					numProcessedError++;
+					expect(err.errorCode).toBe(err.errorCodes.QUEUE_INVALID_JOB_TYPE.errorCode);
+					if (numProcessedError === 2) {
+						q.deleteQueue();
+					}
+					
+				}
+				
+				function workCompletedFunction(err, msg) {
+					numProcessed++;
+				}
+							
+				function brokerStartedFunction(){
+					brokerObj.push(message1);
+					brokerObj.push(message2);
+				}
+				
+				function queueReadyFunction(info) {
+					q = info.queue;
+					info.queue.start();
+				}
+				
+				function brokerStoppedFunction(){
+					unregister();
+				}
+				
+				function queueDeletedQueueFunction(worker, queue) {
+					brokerObj.stop();
+				}
+				
+				brokerObj.on("queue-success", queueSucessFunction);
+				brokerObj.on("work-completed", workCompletedFunction);
+				brokerObj.on("broker-started", brokerStartedFunction);
+				brokerObj.on("queue-ready", queueReadyFunction);
+				brokerObj.on("broker-stopped", brokerStoppedFunction);
+				brokerObj.on("queue-error", queueErrorFunction);
+				brokerObj.on("queue-deleted-queue", queueDeletedQueueFunction);
+		
+				brokerObj.connect();
+				
+				function unregister() {
+					brokerObj.removeListener("work-completed", workCompletedFunction);
+					brokerObj.removeListener("queue-success", queueSucessFunction);
+					brokerObj.removeListener("broker-started", brokerStartedFunction);
+					brokerObj.removeListener("queue-ready", queueReadyFunction);
+					brokerObj.removeListener("broker-stopped", brokerStoppedFunction);
+					brokerObj.removeListener("queue-error", queueErrorFunction);
+					brokerObj.removeListener("queue-deleted-queue", queueDeletedQueueFunction);
+					brokerObj = null;
+					flag = true;
+					
+				}
+			});
+			waitsFor(rerror, 20000);
+			runs(function(){
+				expect(numQueueAlerts).toBe(0);
+				expect(numProcessed).toBe(0);
+				expect(numProcessedError).toBe(2);
+			});
+		});
+		
 	});
 	
 }
