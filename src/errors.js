@@ -38,7 +38,7 @@ exports.errors = (function() {
 		QUEUE_TOO_MANY_QUEUES: { errorCategory:"QUEUE", errorCode: "TOO_MANY_QUEUES", errorMessage:"pushMany() can only be used for a jobType registered for a single queue" },
 		QUEUE_BATCH_SENDING_IN_PROGRESS: { errorCategory:"QUEUE", errorCode: "BATCH_SENDING_IN_PROGRESS", errorMessage:"pushMany() already in progress for jobType[%s]. Please wait for queue-pushmany-completed event before calling pushMany() again." },
 		QUEUE_QUEUE_DELETE_NOT_INITIALIZED: { errorCategory:"QUEUE", errorCode: "QUEUE_DELETE_NOT_INITIALIZED", errorMessage:"Could not initialize queue" },
-		QUEUE_QUEUE_DELETE_ERROR: { errorCategory:"QUEUE", errorCode: "QUEUE_DELETE_ERROR", errorMessage:"Unexpected error: %s" },
+		QUEUE_QUEUE_DELETE_ERROR: { errorCategory:"QUEUE", errorCode: "QUEUE_DELETE_ERROR", errorMessage:"Error trying to delete Queue[%s]: %s" },
 		WORKER_UNEXPECTED_ERROR: { errorCategory:"WORKER", errorCode: "UNEXPECTED_ERROR", errorMessage:"Unexpected error occurred while calling worker.work - %s" }
 	};
 	
