@@ -271,11 +271,18 @@ function AbstractBroker(name) {
 	//Pushes the message to all queues registered
 	//for this type of message
 	this.push = function(msg) {
+		var err;
 		if(!msg.jobType) {
+			err = errorCodes.getError("QUEUE_INVALID_JOB_TYPE");
+			err.errorMessage = util.format(err.errorMessage, msg.jobType);
+			broker.emit("queue-error", err);
 			return;
 		}
 		var queues = eventMap[msg.jobType.toLowerCase().trim()];
-		if(!queues) {
+		if(!queues || !queues.length) {
+			err = errorCodes.getError("QUEUE_INVALID_JOB_TYPE");
+			err.errorMessage = util.format(err.errorMessage, msg.jobType);
+			broker.emit("queue-error", err);
 			return;
 		}
 		for(var i=0; i<queues.length; i++) {
@@ -308,7 +315,11 @@ function AbstractBroker(name) {
 		}
 		
 		var queues = eventMap[jobType];
+		var err;
 		if(!queues) {
+			err = errorCodes.getError("QUEUE_INVALID_JOB_TYPE");
+			err.errorMessage = util.format(err.errorMessage, messages[0].jobType);
+			broker.emit("queue-error", err);
 			return;
 		}
 		

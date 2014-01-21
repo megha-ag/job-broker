@@ -24,6 +24,7 @@ exports.errors = (function() {
 		CONFIG_INVALID_QUEUE_NAME: { errorCategory:"CONFIG", errorCode: "INVALID_QUEUE_NAME", errorMessage:"Queue name[%s] is invalid. Queue names (case-insensitive) can only be 15 characters and contain only characters A-Z or 1-9" },
 		CONFIG_UNKNOWN_ERROR: { errorCategory:"CONFIG", errorCode: "UNKNOWN_ERROR", errorMessage:"An unknown error occurred:[%s]" },
 		QUEUE_ERROR_LOADING_QUEUE_LIST: { errorCategory:"QUEUE", errorCode: "ERROR_LOADING_QUEUE_LIST", errorMessage:"Could not load list of queues - %s" },
+		QUEUE_INVALID_JOB_TYPE: { errorCategory:"QUEUE", errorCode: "INVALID_JOB_TYPE", errorMessage:"Jobtype[%s] - Could not find any queue that accepts the specified jobType" },
 		QUEUE_ERROR_CREATING_QUEUE: { errorCategory:"QUEUE", errorCode: "ERROR_CREATING_QUEUE", errorMessage:"Could not create queue[%s] - %s" },
 		QUEUE_UNEXPECTED_RESPONSE_FROM_SERVER: { errorCategory:"QUEUE", errorCode: "UNEXPECTED_RESPONSE_FROM_SERVER", errorMessage:"Could not create queue[%s] - Response: %s" },
 		QUEUE_ERROR_RECEIVING_MESSAGE: { errorCategory:"QUEUE", errorCode: "ERROR_RECEIVING_MESSAGE", errorMessage:"Could not receive message queue[%s] - Error: %s" },
